@@ -35,6 +35,13 @@ func (a *App) VolumeCreate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	_, err = journal.WriteString("START VOLUME CREATE ID")
+	if err != nil {
+		http.Error(w, "rtalur request unable to be parsed", 422)
+		logger.Info("Journal volume create writer failed")
+		return
+	}
+
 	// Check group id
 	switch {
 	case msg.Gid < 0:

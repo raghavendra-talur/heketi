@@ -18,18 +18,16 @@ import (
 func NewJournal(path string) *bufio.Writer {
 
 	// open output file
-	fo, err := os.Create(path)
+	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 644)
 	if err != nil {
 		panic(err)
 	}
 	// close fo on exit and check for its returned error
 	defer func() {
-		if err := fo.Close(); err != nil {
+		if err := f.Close(); err != nil {
 			panic(err)
 		}
 	}()
 	// make a write buffer
-	w := bufio.NewWriter(fo)
-
-	return w
+	return f
 }
