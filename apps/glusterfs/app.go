@@ -38,6 +38,7 @@ const (
 
 var (
 	logger     = utils.NewLogger("[heketi]", utils.LEVEL_INFO)
+	journal    = utils.NewJournal("/home/rtalur/Code/go/src/github.com/heketi/heketi/journal")
 	dbfilename = "heketi.db"
 )
 
