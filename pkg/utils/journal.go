@@ -15,7 +15,7 @@ import (
 )
 
 // Create a new journal
-func NewJournal(path string) *bufio.Writer {
+func NewJournal(path string) *os.File {
 
 	// open output file
 	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 644)
