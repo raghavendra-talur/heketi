@@ -10,7 +10,6 @@
 package utils
 
 import (
-	"bufio"
 	"os"
 )
 
