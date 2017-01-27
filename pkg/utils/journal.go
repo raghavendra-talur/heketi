@@ -17,7 +17,7 @@ import (
 func NewJournal(path string) *os.File {
 
 	// open output file
-	f, err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 644)
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_WRONLY|os.O_APPEND|os.O_SYNC, 0644)
 	if err != nil {
 		panic(err)
 	}
@@ -27,6 +27,8 @@ func NewJournal(path string) *os.File {
 			panic(err)
 		}
 	}()
+
+	f.WriteString("test string")
 	// make a write buffer
 	return f
 }
