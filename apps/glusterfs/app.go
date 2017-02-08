@@ -37,7 +37,7 @@ const (
 )
 
 var (
-	logger     = utils.NewLogger("[heketi]", utils.LEVEL_INFO)
+	logger     = utils.NewLogger("[heketi]", utils.LEVEL_DEBUG)
 	dbfilename = "heketi.db"
 )
 
@@ -291,6 +291,11 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "POST",
 			Pattern:     "/devices/{id:[A-Fa-f0-9]+}/state",
 			HandlerFunc: a.DeviceSetState},
+		rest.Route{
+			Name:        "DeviceRemove",
+			Method:      "POST",
+			Pattern:     "/devices/{id:[A-Fa-f0-9]+}/remove",
+			HandlerFunc: a.DeviceRemove},
 
 		// Volume
 		rest.Route{

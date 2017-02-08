@@ -168,7 +168,7 @@ func (a *App) VolumeList(w http.ResponseWriter, r *http.Request) {
 
 	var list api.VolumeListResponse
 
-	// Get all the cluster ids from the DB
+	// Get all the volume ids from the DB
 	err := a.db.View(func(tx *bolt.Tx) error {
 		var err error
 

@@ -160,7 +160,7 @@ func TestSimpleAllocatorInitFromDbWithOfflineDevices(t *testing.T) {
 	tests.Assert(t, err == nil)
 
 	// Get the cluster list
-	var clusterId, nodeId string
+	var clusterId string
 	err = app.db.Update(func(tx *bolt.Tx) error {
 		clusters, err := ClusterList(tx)
 		if err != nil {

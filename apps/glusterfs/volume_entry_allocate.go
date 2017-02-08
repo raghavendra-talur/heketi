@@ -63,6 +63,90 @@ func (v *VolumeEntry) allocBricksInCluster(db *bolt.DB,
 	}
 }
 
+func (v *VolumeEntry) replaceBrickInCluster(db *bolt.DB,
+	allocator Allocator,
+	cluster string,
+	oldBrickEntry *BrickEntry) error {
+
+	deviceCh, done, errc := allocator.GetNodes(cluster, oldBrickEntry.Info.Id)
+	defer func() {
+		close(done)
+	}()
+
+	// Do the work in the database context so that the cluster
+	// data does not change while determining brick location
+	err := db.Update(func(tx *bolt.Tx) error {
+		oldDeviceEntry, err := NewDeviceEntryFromId(tx, oldBrickEntry.Info.DeviceId)
+		if err != nil {
+			return err
+		}
+
+		// Check the ring for devices to place the brick
+		for deviceId := range deviceCh {
+
+			// Get device entry
+			newDeviceEntry, err := NewDeviceEntryFromId(tx, deviceId)
+			if err != nil {
+				return err
+			}
+
+			if oldDeviceEntry.Info.Id == newDeviceEntry.Info.Id {
+				continue
+			}
+
+			// Try to allocate a brick on this device
+			newBrickEntry := newDeviceEntry.NewBrickEntry(oldBrickEntry.Info.Size,
+				float64(v.Info.Snapshot.Factor),
+				v.gidRequested)
+
+			// Determine if it was successful
+			if newBrickEntry != nil {
+
+				//executor code somewhere here
+
+				newBrickEntry.SetId(oldBrickEntry.Info.Id)
+				newDeviceEntry.BrickAdd(newBrickEntry.Id())
+				v.BrickAdd(newBrickEntry.Id())
+
+				err := newBrickEntry.Save(tx)
+				if err != nil {
+					return err
+				}
+
+				err = newDeviceEntry.Save(tx)
+				if err != nil {
+					return err
+				}
+				v.BrickAdd(newBrickEntry.Id())
+				if err != nil {
+					logger.Err(err)
+					return err
+				}
+
+				v.removeBrickFromDb(tx, oldBrickEntry)
+
+				logger.Debug("replacing brick %s %s %s with %s %s %s",
+					oldBrickEntry.Id(), oldBrickEntry.Info.NodeId, oldBrickEntry.Info.Path,
+					newBrickEntry.Id(), newBrickEntry.Info.NodeId, newBrickEntry.Info.Path)
+				return nil
+			}
+		}
+
+		// Check if allocator returned an error
+		if err := <-errc; err != nil {
+			return err
+		}
+
+		// No devices found
+		return ErrNoSpace
+
+	})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (v *VolumeEntry) allocBricks(
 	db *bolt.DB,
 	allocator Allocator,

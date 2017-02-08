@@ -154,6 +154,77 @@ func (a *App) DeviceAdd(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (a *App) DeviceRemove(w http.ResponseWriter, r *http.Request) {
+
+	logger.LogError("entered deviceremove")
+
+	vars := mux.Vars(r)
+	id := vars["id"]
+
+	// Check request
+	var (
+		device   *DeviceEntry
+		volentry *VolumeEntry
+		volinfo  *api.VolumeInfoResponse
+	)
+	err := a.db.View(func(tx *bolt.Tx) error {
+		var err error
+		// Access device entry
+		device, err = NewDeviceEntryFromId(tx, id)
+		if err == ErrNotFound {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return err
+		} else if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return logger.Err(err)
+		}
+		// Check if we can remove the device
+		if device.IsDeleteOk() {
+			logger.LogError("returning because device empty")
+			return nil
+		}
+
+		var list api.VolumeListResponse
+		list.Volumes, err = VolumeList(tx)
+		if err != nil {
+			return err
+		}
+		logger.LogError("got %s volumes", len(list.Volumes))
+		for _, volid := range list.Volumes {
+			volentry, err = NewVolumeEntryFromId(tx, volid)
+			if err == ErrNotFound {
+				http.Error(w, "Id not found", http.StatusNotFound)
+				return err
+			} else if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
+			logger.LogError("vol id %s", volid)
+
+			volinfo, err = volentry.NewInfoResponse(tx)
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return err
+			}
+			for _, bricks := range volinfo.Bricks {
+				logger.LogError(bricks.DeviceId)
+				if bricks.DeviceId == id {
+					// need to call
+					//volentry.replaceBrickInCluster(...)
+
+					http.Error(w, device.NoReplacementDeviceString(), http.StatusLocked)
+					logger.LogError(device.NoReplacementDeviceString())
+					return ErrNoReplacement
+				}
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return
+	}
+}
+
 func (a *App) DeviceInfo(w http.ResponseWriter, r *http.Request) {
 
 	// Get device id from URL
