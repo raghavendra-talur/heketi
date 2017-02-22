@@ -185,6 +185,49 @@ type VolumeExpandRequest struct {
 	Size int `json:"expand_size"`
 }
 
+// BlockVolume
+
+type BlockVolumeCreateRequest struct {
+	// Size in GB
+	Size       int       `json:"size"`
+	Clusters   []string  `json:"clusters,omitempty"`
+	Name       string    `json:"name"`
+	Hacount    int       `json:"hacount,omitempty"`
+}
+
+type BlockVolumeInfo struct {
+	BlockVolumeCreateRequest
+	Id      string `json:"id"`
+	Size    int    `json:"size"`
+	/*
+	Cluster string `json:"cluster"` // needed???
+	*/
+	BlockVolume struct {
+		Hosts     []string `json:"hosts"`
+		Hacount   int `json:"hacount"`
+		Iqn       string `json:"iqn"`
+		Lun       int `json:"lun"`
+		/*
+		FStype    string `json:"fstype"`   // wrong here?
+		Options   map[string]string `json:"options"`  // needed?...
+		*/
+	} `json:"blockvolume"`
+}
+
+type BlockVolumeInfoResponse struct {
+	BlockVolumeInfo
+}
+
+type BlockVolumeListResponse struct {
+	BlockVolumes []string `json:"blockvolumes"`
+}
+
+/*
+type BlockVolumeExpandRequest struct {
+	Size int `json:"expand_size"`
+}
+*/
+
 // Constructors
 
 func NewVolumeInfoResponse() *VolumeInfoResponse {

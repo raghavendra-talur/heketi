@@ -127,3 +127,22 @@ type VolInfo struct {
 	XMLName xml.Name `xml:"volInfo"`
 	Volumes Volumes  `xml:"volumes"`
 }
+
+type BlockVolumeRequest struct {
+	Name string
+	Size int
+	GlusterVolumeName string
+	GlusterNode string
+	Hacount int
+	BlockHosts []string
+}
+
+// TODO: what does it exactly look like?
+type BlockVolumeInfo struct {
+	Name string
+	Size int
+	GlusterVolumeName string
+	GlusterNode string
+	Hacount int
+	BlockHosts []string
+}

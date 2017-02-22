@@ -26,12 +26,13 @@ import (
 )
 
 const (
-	ASYNC_ROUTE           = "/queue"
-	BOLTDB_BUCKET_CLUSTER = "CLUSTER"
-	BOLTDB_BUCKET_NODE    = "NODE"
-	BOLTDB_BUCKET_VOLUME  = "VOLUME"
-	BOLTDB_BUCKET_DEVICE  = "DEVICE"
-	BOLTDB_BUCKET_BRICK   = "BRICK"
+	ASYNC_ROUTE                = "/queue"
+	BOLTDB_BUCKET_CLUSTER      = "CLUSTER"
+	BOLTDB_BUCKET_NODE         = "NODE"
+	BOLTDB_BUCKET_VOLUME       = "VOLUME"
+	BOLTDB_BUCKET_DEVICE       = "DEVICE"
+	BOLTDB_BUCKET_BRICK        = "BRICK"
+	BOLTDB_BUCKET_BLOCKVOLUME  = "BLOCKVOLUME"
 )
 
 var (
@@ -360,6 +361,35 @@ func (a *App) SetRoutes(router *mux.Router) error {
 			Method:      "GET",
 			Pattern:     "/volumes",
 			HandlerFunc: a.VolumeList},
+
+		// BlockVolumes
+		rest.Route{
+			Name:        "BlockVolumeCreate",
+			Method:      "POST",
+			Pattern:     "/blockvolumes",
+			HandlerFunc: a.BlockVolumeCreate},
+		rest.Route{
+			Name:        "BlockVolumeInfo",
+			Method:      "GET",
+			Pattern:     "/blockvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.BlockVolumeInfo},
+		/* TODO:
+		rest.Route{
+			Name:        "BlockVolumeExpand",
+			Method:      "POST",
+			Pattern:     "/blockvolumes/{id:[A-Fa-f0-9]+}/expand",
+			HandlerFunc: a.BlockVolumeExpand},
+		*/
+		rest.Route{
+			Name:        "BlockVolumeDelete",
+			Method:      "DELETE",
+			Pattern:     "/blockvolumes/{id:[A-Fa-f0-9]+}",
+			HandlerFunc: a.BlockVolumeDelete},
+		rest.Route{
+			Name:        "BlockVolumeList",
+			Method:      "GET",
+			Pattern:     "/blockvolumes",
+			HandlerFunc: a.BlockVolumeList},
 
 		// Backup
 		rest.Route{
