@@ -377,7 +377,6 @@ func (d *DeviceEntry) NewBrickEntry(amount uint64, snapFactor float64, gid int64
 		d.Id(),
 		d.Info.Storage.Free, total)
 	if !d.StorageCheck(total) {
-		logger.Info("Failed Storage Check")
 		return nil
 	}
 
