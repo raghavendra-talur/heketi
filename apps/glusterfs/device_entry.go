@@ -441,3 +441,7 @@ func (d *DeviceEntry) Remove(db *bolt.DB,
 	}
 	return nil
 }
+
+func DeviceEntryUpgrade(tx *bolt.Tx) error {
+	return nil
+}
