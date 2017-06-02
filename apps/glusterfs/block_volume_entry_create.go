@@ -10,42 +10,39 @@
 package glusterfs
 
 import (
-	"fmt"
 	"github.com/boltdb/bolt"
 	"github.com/heketi/heketi/executors"
-	"github.com/heketi/heketi/pkg/utils"
 	"github.com/lpabon/godbc"
-	"strings"
 )
 
-func (v *VolumeEntry) createBlockVolume(db *bolt.DB,
-	executor executors.Executor,
-	blockVolumeName, size, host, gluster_volume_name) error {
+func (v *BlockVolumeEntry) createBlockVolume(db *bolt.DB,
+	executor executors.Executor, blockHostingVolume string) error {
 
 	godbc.Require(db != nil)
-	godbc.Require(brick_entries != nil)
+	godbc.Require(blockHostingVolume != "")
 
-	vr, host, err := v.createBlockVolumeRequest(db, ..)
+	vr, host, err := v.createBlockVolumeRequest(db, blockHostingVolume)
 	if err != nil {
 		return err
 	}
 
 	// Create the volume
-	_, err = executor.BlockVolumeCreate(host, vr) // TODO - implement
+	blockVolumeInfo, err := executor.BlockVolumeCreate(host, vr)
 	if err != nil {
 		return err
 	}
 
-	hosts := stringset.Strings()
-	v.Info.BlockVolume.Hosts = hosts
+	v.Info.BlockVolume.Iqn = blockVolumeInfo.Iqn
+	v.Info.BlockVolume.Hosts = vr.BlockHosts
+	v.Info.BlockVolume.Lun = 0
 
 	return nil
 }
 
-func (v *VolumeEntry) createVolumeRequest(db *bolt.DB,
-	brick_entries []*BrickEntry) (*executors.VolumeRequest, string, error) {
+func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
+	blockHostingVolume string) (*executors.BlockVolumeRequest, string, error) {
 	godbc.Require(db != nil)
-	godbc.Require(brick_entries != nil)
+	godbc.Require(blockHostingVolume != "")
 
 	// Setup list of bricks
 	vr := &executors.BlockVolumeRequest{}
@@ -53,7 +50,16 @@ func (v *VolumeEntry) createVolumeRequest(db *bolt.DB,
 
 	// TODO -- which NodeId
 	err := db.View(func(tx *bolt.Tx) error {
-		node, err := NewNodeEntryFromId(tx, NodeId)
+		bhvol, err := NewVolumeEntryFromId(tx, blockHostingVolume)
+		if err != nil {
+			return err
+		}
+
+		for _, nodeId := range bhvol.Info.Mount.GlusterFS.Hosts {
+			// Check if glusterd is up here.
+		}
+
+		node, err := NewNodeEntryFromId(tx, nodeId)
 		if err != nil {
 			return err
 		}
@@ -61,8 +67,6 @@ func (v *VolumeEntry) createVolumeRequest(db *bolt.DB,
 		if executorhost == "" {
 			executorhost = node.ManageHostName()
 		}
-		vr.Bricks[i].Host = node.StorageHostName()
-		godbc.Check(vr.Bricks[i].Host != "")
 
 		return nil
 	})
@@ -73,6 +77,10 @@ func (v *VolumeEntry) createVolumeRequest(db *bolt.DB,
 
 	// Setup volume information in the request
 	vr.Name = v.Info.Name
+	vr.BlockHosts = v.Info.BlockVolume.Hosts
+	vr.GlusterVolumeName = blockHostingVolume
+	vr.Hacount = v.Info.Hacount
+	vr.Size = v.Info.Size
 
 	return vr, executorhost, nil
 }

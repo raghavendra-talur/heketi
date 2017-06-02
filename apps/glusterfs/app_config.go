@@ -30,6 +30,10 @@ type GlusterFSConfig struct {
 	BrickMaxSize int `json:"brick_max_size_gb"`
 	BrickMinSize int `json:"brick_min_size_gb"`
 	BrickMaxNum  int `json:"max_bricks_per_volume"`
+
+	//block settings
+	CreateBlockHostingVolumes bool `json:"auto_create_block_hosting_volume"`
+	BlockHostingVolumeNewSize int  `json:"block_hosting_volume_new_size"`
 }
 
 type ConfigFile struct {

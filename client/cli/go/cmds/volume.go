@@ -37,6 +37,7 @@ var (
 	kubePvFile     string
 	kubePvEndpoint string
 	kubePv         bool
+	label          string
 )
 
 func init() {

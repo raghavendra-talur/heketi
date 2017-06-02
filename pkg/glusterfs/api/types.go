@@ -153,7 +153,8 @@ type VolumeCreateRequest struct {
 	Name       string               `json:"name"`
 	Durability VolumeDurabilityInfo `json:"durability,omitempty"`
 	Gid        int64                `json:"gid,omitempty"`
-	Snapshot   struct {
+
+	Snapshot struct {
 		Enable bool    `json:"enable"`
 		Factor float32 `json:"factor"`
 	} `json:"snapshot"`
@@ -170,6 +171,11 @@ type VolumeInfo struct {
 			Options    map[string]string `json:"options"`
 		} `json:"glusterfs"`
 	} `json:"mount"`
+	Label string `json:"label,omitempty"`
+	Block struct {
+		FreeSize     int `json:"freesize,omitempty"`
+		BlockVolumes []string
+	}
 }
 
 type VolumeInfoResponse struct {
@@ -189,27 +195,22 @@ type VolumeExpandRequest struct {
 
 type BlockVolumeCreateRequest struct {
 	// Size in GB
-	Size       int       `json:"size"`
-	Clusters   []string  `json:"clusters,omitempty"`
-	Name       string    `json:"name"`
-	Hacount    int       `json:"hacount,omitempty"`
+	Size     int      `json:"size"`
+	Clusters []string `json:"clusters,omitempty"`
+	Name     string   `json:"name"`
+	Hacount  int      `json:"hacount,omitempty"`
 }
 
 type BlockVolumeInfo struct {
 	BlockVolumeCreateRequest
-	Id      string `json:"id"`
-	Size    int    `json:"size"`
-	/*
-	Cluster string `json:"cluster"` // needed???
-	*/
+	Id          string `json:"id"`
 	BlockVolume struct {
-		Hosts     []string `json:"hosts"`
-		Hacount   int `json:"hacount"`
-		Iqn       string `json:"iqn"`
-		Lun       int `json:"lun"`
+		Hosts []string `json:"hosts"`
+		Iqn   string   `json:"iqn"`
+		Lun   int      `json:"lun"`
 		/*
-		FStype    string `json:"fstype"`   // wrong here?
-		Options   map[string]string `json:"options"`  // needed?...
+			FStype    string `json:"fstype"`   // wrong here?
+			Options   map[string]string `json:"options"`  // needed?...
 		*/
 	} `json:"blockvolume"`
 }

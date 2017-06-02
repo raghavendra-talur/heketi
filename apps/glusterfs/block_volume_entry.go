@@ -31,7 +31,7 @@ const (
 )
 
 type BlockVolumeEntry struct {
-	Info         api.BlockVolumeInfo
+	Info api.BlockVolumeInfo
 }
 
 func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
@@ -40,6 +40,9 @@ func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
 		return nil, ErrAccessList
 	}
 	return list, nil
+}
+func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator) (*VolumeEntry, error) {
+	var msg api.VolumeCreateRequest
 }
 
 func NewBlockVolumeEntry() *BlockVolumeEntry {
@@ -64,6 +67,7 @@ func NewBlockVolumeEntryFromRequest(req *api.BlockVolumeCreateRequest) *BlockVol
 
 	// If Clusters is zero, then it will be assigned during volume creation
 	vol.Info.Clusters = req.Clusters
+	vol.Info.Hacount = req.Hacount
 
 	return vol
 }
@@ -162,14 +166,50 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	}
 	logger.Debug("Using the following clusters: %+v", possibleClusters)
 
-	// TODO:
-	// - select cluster
-	// - select gluster volume in cluster
-	// - Check for file name conflict on volume
-	// - check for space in volume
-	// :TODO
+	var possibleVolumes []string
+	for _, clusterId := range possibleClusters {
+		err := db.View(func(tx *bolt.Tx) error {
+			var err error
+			c, err := NewClusterEntryFromId(tx, clusterId)
+			for _, vol := range c.Info.Volumes {
+				volEntry, err := NewVolumeEntryFromId(tx, vol)
+				if volEntry.Info.Label == "block" {
+					possibleVolumes = append(possibleVolumes, vol)
+				}
+			}
+		})
+	}
 
-	// Make sure to clean up bricks on error -- TODO: MAY NOT BE NEEDED
+	var volumes []string
+	for _, vol := range possibleVolumes {
+		err := db.View(func(tx *bolt.Tx) error {
+			volEntry, err := NewVolumeEntryFromId(tx, vol)
+			if volEntry.Info.Block.FreeSize >= v.Info.Size {
+				for _, blockvol := range volEntry.Info.Block.BlockVolumes {
+					bv, err := NewBlockVolumeEntryFromId(tx, blockvol)
+					if err != nil {
+						return err
+					}
+					if v.Info.Name == bv.Info.Name {
+						return fmt.Errorf("Name %v already in use in file volume %v",
+							v.Info.Name, volEntry.Info.Name)
+					}
+				}
+			}
+		})
+		if err != nil {
+			logger.Warning("%v", err.Error())
+		} else {
+			volumes = append(volumes, vol)
+		}
+	}
+
+	if len(volumes) == 0 {
+		logger.Info("No block hosting volumes found in the cluster list")
+		bhvol, err := NewBlockHostingVolume(db, executor, allocator)
+
+	}
+
 	defer func() {
 		if e != nil {
 			db.Update(func(tx *bolt.Tx) error {
@@ -179,11 +219,11 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		}
 	}()
 
+	blockHostingVolume := volumes[0]
 	// Cluster -> Volume (gluster-volume) -> BlockVolume
-
 	// Create gluster-block volume - this calls gluster_block
 	// TODO...
-	err = v.createBlockVolume(db, executor, block_volume_name, size, host(s), gluster_volume_name)
+	err = v.createBlockVolume(db, executor, blockHostingVolume)
 	if err != nil {
 		return err
 	}
@@ -217,6 +257,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		// TODO:
 		//  do we need to save the cluster? do we store anything in
 		//  the cluster
+		//  [ashiq]Yes, We save the Volume ids list which belongs to the cluster
 	})
 	if err != nil {
 		return err
@@ -273,19 +314,19 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 		}
 
 		/*
-		or:
-		volume, err := NewVolumeEntryFromId(tx, v.Info.VolumeName)
-		if err != nil {
-			logger.Err(err)
-			// Do not return here.. keep going
-		}
-		volume.BlockVolumeDelete(v.Info.Id)
+			or:
+			volume, err := NewVolumeEntryFromId(tx, v.Info.VolumeName)
+			if err != nil {
+				logger.Err(err)
+				// Do not return here.. keep going
+			}
+			volume.BlockVolumeDelete(v.Info.Id)
 
-		err = volume.Save(tx)
-		if err != nil {
-			logger.Err(err)
-			// Do not return here.. keep going
-		}
+			err = volume.Save(tx)
+			if err != nil {
+				logger.Err(err)
+				// Do not return here.. keep going
+			}
 		*/
 
 		v.Delete(tx)

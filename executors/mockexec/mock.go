@@ -10,6 +10,8 @@
 package mockexec
 
 import (
+	"strings"
+
 	"github.com/heketi/heketi/executors"
 )
 
@@ -29,6 +31,7 @@ type MockExecutor struct {
 	MockVolumeDestroyCheck func(host, volume string) error
 	MockVolumeReplaceBrick func(host string, volume string, oldBrick *executors.BrickInfo, newBrick *executors.BrickInfo) error
 	MockVolumeInfo         func(host string, volume string) (*executors.Volume, error)
+	MockBlockVolumeCreate  func(host string, blockVolume *executors.BlockVolumeRequest) (*executors.BlockVolumeInfo, error)
 }
 
 func NewMockExecutor() (*MockExecutor, error) {
@@ -109,6 +112,20 @@ func NewMockExecutor() (*MockExecutor, error) {
 		return vinfo, nil
 	}
 
+	m.MockBlockVolumeCreate = func(host string, blockVolume *executors.BlockVolumeRequest) (*executors.BlockVolumeInfo, error) {
+		var blockVolumeInfo executors.BlockVolumeInfo
+		blockVolumeInfo.BlockHosts = blockVolume.BlockHosts
+		blockVolumeInfo.GlusterNode = blockVolume.GlusterNode
+		blockVolumeInfo.GlusterVolumeName = blockVolume.GlusterVolumeName
+		blockVolumeInfo.Hacount = blockVolume.Hacount
+		blockVolumeInfo.Iqn = "fakeIQN"
+		blockVolumeInfo.Name = blockVolume.Name
+		blockVolumeInfo.Portals = strings.Join(blockVolume.BlockHosts, ",")
+		blockVolumeInfo.Size = blockVolume.Size
+
+		return &blockVolumeInfo, nil
+	}
+
 	return m, nil
 }
 
@@ -170,4 +187,8 @@ func (m *MockExecutor) VolumeReplaceBrick(host string, volume string, oldBrick *
 
 func (m *MockExecutor) VolumeInfo(host string, volume string) (*executors.Volume, error) {
 	return m.MockVolumeInfo(host, volume)
+}
+
+func (m *MockExecutor) BlockVolumeCreate(host string, blockVolume *executors.BlockVolumeRequest) (*executors.BlockVolumeInfo, error) {
+	return m.MockBlockVolumeCreate(host, blockVolume)
 }

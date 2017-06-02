@@ -26,13 +26,13 @@ import (
 )
 
 const (
-	ASYNC_ROUTE                = "/queue"
-	BOLTDB_BUCKET_CLUSTER      = "CLUSTER"
-	BOLTDB_BUCKET_NODE         = "NODE"
-	BOLTDB_BUCKET_VOLUME       = "VOLUME"
-	BOLTDB_BUCKET_DEVICE       = "DEVICE"
-	BOLTDB_BUCKET_BRICK        = "BRICK"
-	BOLTDB_BUCKET_BLOCKVOLUME  = "BLOCKVOLUME"
+	ASYNC_ROUTE               = "/queue"
+	BOLTDB_BUCKET_CLUSTER     = "CLUSTER"
+	BOLTDB_BUCKET_NODE        = "NODE"
+	BOLTDB_BUCKET_VOLUME      = "VOLUME"
+	BOLTDB_BUCKET_DEVICE      = "DEVICE"
+	BOLTDB_BUCKET_BRICK       = "BRICK"
+	BOLTDB_BUCKET_BLOCKVOLUME = "BLOCKVOLUME"
 )
 
 var (
@@ -163,6 +163,9 @@ func NewApp(configIo io.Reader) *App {
 	// Set advanced settings
 	app.setAdvSettings()
 
+	// Set block settings
+	app.setBlockSettings()
+
 	// Setup allocator
 	switch {
 	case app.conf.Allocator == "mock":
@@ -254,6 +257,21 @@ func (a *App) setAdvSettings() {
 		// From volume_entry.go
 		// Convert to KB
 		BrickMinSize = uint64(a.conf.BrickMinSize) * 1024 * 1024
+	}
+}
+
+func (a *App) setBlockSettings() {
+	if a.conf.CreateBlockHostingVolumes != false {
+		logger.Info("Block: Auto Create Block Hosting Volume set to %v", a.conf.CreateBlockHostingVolumes)
+
+		// From volume_entry.go
+		CreateBlockHostingVolumes = a.conf.CreateBlockHostingVolumes
+	}
+	if a.conf.BlockHostingVolumeNewSize != 0 {
+		logger.Info("Block: New Block Hosting Volume size %v GB", a.conf.BlockHostingVolumeNewSize)
+
+		// From
+		BlockHostingVolumeNewSize = uint64(a.conf.BlockHostingVolumeNewSize) * 1024 * 1024
 	}
 }
 

@@ -27,6 +27,7 @@ type Executor interface {
 	VolumeReplaceBrick(host string, volume string, oldBrick *BrickInfo, newBrick *BrickInfo) error
 	VolumeInfo(host string, volume string) (*Volume, error)
 	SetLogLevel(level string)
+	BlockVolumeCreate(host string, blockVolume *BlockVolumeRequest) (*BlockVolumeInfo, error)
 }
 
 // Enumerate durability types
@@ -129,20 +130,22 @@ type VolInfo struct {
 }
 
 type BlockVolumeRequest struct {
-	Name string
-	Size int
+	Name              string
+	Size              int
 	GlusterVolumeName string
-	GlusterNode string
-	Hacount int
-	BlockHosts []string
+	GlusterNode       string
+	Hacount           int
+	BlockHosts        []string
 }
 
 // TODO: what does it exactly look like?
 type BlockVolumeInfo struct {
-	Name string
-	Size int
+	Name              string
+	Size              int
 	GlusterVolumeName string
-	GlusterNode string
-	Hacount int
-	BlockHosts []string
+	GlusterNode       string
+	Hacount           int
+	BlockHosts        []string
+	Iqn               string
+	Portals           string
 }

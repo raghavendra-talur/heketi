@@ -10,8 +10,9 @@
 package sshexec
 
 import (
-	"encoding/xml"
+	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/heketi/heketi/executors"
 	"github.com/lpabon/godbc"
@@ -24,33 +25,52 @@ func (s *SshExecutor) BlockVolumeCreate(host string,
 	godbc.Require(host != "")
 	godbc.Require(volume.Name != "")
 
-	cmd := fmt.Sprintf("gluster-block --create %v --volume %v --host %v --size %v --multipath %v  --block-host %v",
-		volume.Name, volume.GlusterVolumeName, volume.GlusterNode,
-		volume.Size, volume.Hacount, strings.Join(volume.BlockHosts, ',')
+	type CliOutput struct {
+		Iqn    string `json:"IQN"`
+		Portal string `json:"PORTAL(S)"`
+		Result string `json:"RESULT"`
+	}
+
+	cmd := fmt.Sprintf("gluster-block --create vol_%v/%v  ha %v  %v %v --json",
+		volume.GlusterVolumeName, volume.Name, volume.Hacount, strings.Join(volume.BlockHosts, ","), volume.Size)
 
 	// Initialize the commands with the create command
 	commands := []string{cmd}
 
 	// Execute command
-	_, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
+	output, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
 	if err != nil {
 		s.BlockVolumeDestroy(host, volume.Name)
 		return nil, err
 	}
 
-	// TODO: fill the Info?
+	var blockVolumeCreate CliOutput
+	err = json.Unmarshal([]byte(output[0]), &blockVolumeCreate)
+	if err != nil {
+		return nil, fmt.Errorf("Unable to get the block volume create info for block volume %v", volume.Name)
+	}
 
-	return &executors.BlockVolumeInfo{}, nil
+	var blockVolumeInfo executors.BlockVolumeInfo
+
+	blockVolumeInfo.BlockHosts = volume.BlockHosts
+	blockVolumeInfo.GlusterNode = volume.GlusterNode
+	blockVolumeInfo.GlusterVolumeName = volume.GlusterVolumeName
+	blockVolumeInfo.Hacount = volume.Hacount
+	blockVolumeInfo.Iqn = blockVolumeCreate.Iqn
+	blockVolumeInfo.Name = volume.Name
+	blockVolumeInfo.Portals = blockVolumeCreate.Portal
+	blockVolumeInfo.Size = volume.Size
+
+	return &blockVolumeInfo, nil
 }
 
-func (s *SshExecutor) BlockVolumeInfo(host string, volume string, gluster_volume string)
-	(*executors.VolumeInfo, error) {
+func (s *SshExecutor) BlockVolumeInfo(host string, volume string, gluster_volume string) (*executors.BlockVolumeInfo, error) {
 
-	godbc.Require(volume != nil)
+	godbc.Require(volume != "")
 	godbc.Require(host != "")
-	godbc.Require(volume.Name != "")
+	godbc.Require(volume != "")
 
-	cmd := fmt.Sprintf("gluster-block --info %v --volume %v", volume, glusterfs_volume)
+	cmd := fmt.Sprintf("gluster-block --info %v --volume %v", volume, gluster_volume)
 
 	commands := []string{cmd}
 
@@ -72,7 +92,6 @@ func (s *SshExecutor) BlockVolumeInfo(host string, volume string, gluster_volume
 
 	return &executors.BlockVolumeInfo{}, nil
 }
-
 
 /*
 func (s *SshExecutor) VolumeExpand(host string,
@@ -108,8 +127,10 @@ func (s *SshExecutor) BlockVolumeDestroy(host string, volume string) error {
 	godbc.Require(host != "")
 	godbc.Require(volume != "")
 
+	gluster_volume := ""
+
 	commands := []string{
-		fmt.Sprintf("gluster-block --delete %v --volume %v", volume, glusterfs_volume)
+		fmt.Sprintf("gluster-block --delete %v --volume %v", volume, gluster_volume),
 	}
 
 	_, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
