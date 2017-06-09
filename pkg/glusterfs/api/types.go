@@ -209,8 +209,7 @@ type BlockVolumeInfo struct {
 		Iqn   string   `json:"iqn"`
 		Lun   int      `json:"lun"`
 		/*
-			FStype    string `json:"fstype"`   // wrong here?
-			Options   map[string]string `json:"options"`  // needed?...
+		Options   map[string]string `json:"options"`  // needed?...
 		*/
 	} `json:"blockvolume"`
 }
