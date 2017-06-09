@@ -52,13 +52,12 @@ func (s *SshExecutor) BlockVolumeCreate(host string,
 
 	var blockVolumeInfo executors.BlockVolumeInfo
 
-	blockVolumeInfo.BlockHosts = volume.BlockHosts
+	blockVolumeInfo.BlockHosts = volume.BlockHosts // TODO: split blockVolumeCreate.Portal into here instead of using request data
 	blockVolumeInfo.GlusterNode = volume.GlusterNode
 	blockVolumeInfo.GlusterVolumeName = volume.GlusterVolumeName
 	blockVolumeInfo.Hacount = volume.Hacount
 	blockVolumeInfo.Iqn = blockVolumeCreate.Iqn
 	blockVolumeInfo.Name = volume.Name
-	blockVolumeInfo.Portals = blockVolumeCreate.Portal
 	blockVolumeInfo.Size = volume.Size
 
 	return &blockVolumeInfo, nil

@@ -120,7 +120,6 @@ func NewMockExecutor() (*MockExecutor, error) {
 		blockVolumeInfo.Hacount = blockVolume.Hacount
 		blockVolumeInfo.Iqn = "fakeIQN"
 		blockVolumeInfo.Name = blockVolume.Name
-		blockVolumeInfo.Portals = strings.Join(blockVolume.BlockHosts, ",")
 		blockVolumeInfo.Size = blockVolume.Size
 
 		return &blockVolumeInfo, nil

@@ -147,5 +147,4 @@ type BlockVolumeInfo struct {
 	Hacount           int
 	BlockHosts        []string
 	Iqn               string
-	Portals           string
 }
