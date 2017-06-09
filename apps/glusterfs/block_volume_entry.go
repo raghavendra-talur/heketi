@@ -13,7 +13,6 @@ import (
 	"bytes"
 	"encoding/gob"
 	"fmt"
-	"sort"
 
 	"github.com/boltdb/bolt"
 	"github.com/heketi/heketi/executors"
@@ -43,11 +42,11 @@ func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
 }
 func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator) (*VolumeEntry, error) {
 	var msg api.VolumeCreateRequest
+	msg
 }
 
 func NewBlockVolumeEntry() *BlockVolumeEntry {
 	entry := &BlockVolumeEntry{}
-	entry.Bricks = make(sort.StringSlice, 0)
 
 	return entry
 }
