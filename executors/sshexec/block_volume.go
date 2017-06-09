@@ -68,7 +68,6 @@ func (s *SshExecutor) BlockVolumeInfo(host string, volume string, gluster_volume
 
 	godbc.Require(volume != "")
 	godbc.Require(host != "")
-	godbc.Require(volume != "")
 
 	cmd := fmt.Sprintf("gluster-block --info %v --volume %v", volume, gluster_volume)
 
