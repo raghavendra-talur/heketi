@@ -271,7 +271,7 @@ func (a *App) setBlockSettings() {
 		logger.Info("Block: New Block Hosting Volume size %v GB", a.conf.BlockHostingVolumeNewSize)
 
 		// From
-		BlockHostingVolumeNewSize = uint64(a.conf.BlockHostingVolumeNewSize) * 1024 * 1024
+		NewBlockHostingVolumeSize = uint64(a.conf.NewBlockHostingVolumeSize) * 1024 * 1024
 	}
 }
 

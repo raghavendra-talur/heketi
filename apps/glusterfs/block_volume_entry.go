@@ -42,7 +42,7 @@ func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
 }
 func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator) (*VolumeEntry, error) {
 	var msg api.VolumeCreateRequest
-	msg
+	msg 
 }
 
 func NewBlockVolumeEntry() *BlockVolumeEntry {

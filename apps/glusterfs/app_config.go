@@ -33,7 +33,7 @@ type GlusterFSConfig struct {
 
 	//block settings
 	CreateBlockHostingVolumes bool `json:"auto_create_block_hosting_volume"`
-	BlockHostingVolumeNewSize int  `json:"block_hosting_volume_new_size"`
+	NewBlockHostingVolumeSize int  `json:"new_block_hosting_volume_size"`
 }
 
 type ConfigFile struct {

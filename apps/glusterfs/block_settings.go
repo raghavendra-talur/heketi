@@ -12,5 +12,5 @@ package glusterfs
 var (
 	// Default block settings
 	CreateBlockHostingVolumes = false
-	BlockHostingVolumeNewSize = uint64(1 * TB)
+	NewBlockHostingVolumeSize = uint64(1 * TB)
 )
