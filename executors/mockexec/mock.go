@@ -10,8 +10,6 @@
 package mockexec
 
 import (
-	"strings"
-
 	"github.com/heketi/heketi/executors"
 )
 

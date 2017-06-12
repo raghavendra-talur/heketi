@@ -21,14 +21,6 @@ import (
 	"github.com/lpabon/godbc"
 )
 
-const (
-	// Byte values in KB
-	KB = 1
-	MB = KB * 1024
-	GB = MB * 1024
-	TB = GB * 1024
-)
-
 type BlockVolumeEntry struct {
 	Info api.BlockVolumeInfo
 }
@@ -40,9 +32,52 @@ func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
 	}
 	return list, nil
 }
-func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator) (*VolumeEntry, error) {
+func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator, clusters []string) (*VolumeEntry, error) {
 	var msg api.VolumeCreateRequest
-	msg 
+	err := db.View(func(tx *bolt.Tx) error {
+		msg.Clusters = clusters
+		msg.Durability.Type = api.DurabilityReplicate
+		msg.Size = NewBlockHostingVolumeSize
+		msg.Durability.Replicate.Replica = 3
+	})
+
+	vol := NewVolumeEntryFromRequest(&msg)
+
+	if uint64(msg.Size)*GB < vol.Durability.MinVolumeSize() {
+		return nil, fmt.Errorf("Requested volume size (%v GB) is "+
+			"smaller than the minimum supported volume size (%v)",
+			msg.Size, vol.Durability.MinVolumeSize())
+	}
+
+	err = vol.Create(db, executor, allocator)
+	if err != nil {
+		logger.LogError("Failed to create Block Hosting Volume: %v", err)
+		return nil, err
+	}
+
+	err = db.Update(func(tx *bolt.Tx) error {
+		vol.Info.BlockInfo.FreeSize = vol.Info.Size
+		vol.Info.Block = true
+
+		err = vol.Save(tx)
+		if err != nil {
+			return err
+		}
+	})
+
+	if err != nil {
+		logger.LogError("Failed to save the Block Hosting volume settings: %v", err)
+		err = vol.Destroy(db, executor)
+		if err != nil {
+			logger.LogError("Failed to destroy the failed Block Hosting volume: %v", err)
+		}
+
+	}
+
+	logger.Info("Block Hosting Volume created %v", vol.Info.Name)
+
+	return vol, err
+
 }
 
 func NewBlockVolumeEntry() *BlockVolumeEntry {
@@ -103,7 +138,7 @@ func (v *BlockVolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.BlockVolumeInfoRes
 
 	info := api.NewBlockVolumeInfoResponse()
 	info.Id = v.Info.Id
-	info.Cluster = v.Info.Cluster
+	info.Cluster = v.Info.Clusters
 	info.BlockVolume = v.Info.BlockVolume
 	info.Size = v.Info.Size
 	info.Name = v.Info.Name
@@ -172,7 +207,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 			c, err := NewClusterEntryFromId(tx, clusterId)
 			for _, vol := range c.Info.Volumes {
 				volEntry, err := NewVolumeEntryFromId(tx, vol)
-				if volEntry.Info.Label == "block" {
+				if volEntry.Info.Block {
 					possibleVolumes = append(possibleVolumes, vol)
 				}
 			}
@@ -183,8 +218,8 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	for _, vol := range possibleVolumes {
 		err := db.View(func(tx *bolt.Tx) error {
 			volEntry, err := NewVolumeEntryFromId(tx, vol)
-			if volEntry.Info.Block.FreeSize >= v.Info.Size {
-				for _, blockvol := range volEntry.Info.Block.BlockVolumes {
+			if volEntry.Info.BlockInfo.FreeSize >= v.Info.Size {
+				for _, blockvol := range volEntry.Info.BlockInfo.BlockVolumes {
 					bv, err := NewBlockVolumeEntryFromId(tx, blockvol)
 					if err != nil {
 						return err
@@ -205,7 +240,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 
 	if len(volumes) == 0 {
 		logger.Info("No block hosting volumes found in the cluster list")
-		bhvol, err := NewBlockHostingVolume(db, executor, allocator)
+		bhvol, err := NewBlockHostingVolume(db, executor, allocator, v.Info.Clusters)
 
 	}
 
@@ -222,7 +257,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	// Cluster -> Volume (gluster-volume) -> BlockVolume
 	// Create gluster-block volume - this calls gluster_block
 	// TODO...
-	err = v.createBlockVolume(db, executor, blockHostingVolume)
+	err := v.createBlockVolume(db, executor, blockHostingVolume)
 	if err != nil {
 		return err
 	}
@@ -240,7 +275,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 			return err
 		}
 
-		cluster, err := NewClusterEntryFromId(tx, v.Info.Cluster)
+		cluster, err := NewClusterEntryFromId(tx, v.Info.Clusters)
 		if err != nil {
 			return err
 		}

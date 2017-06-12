@@ -171,8 +171,8 @@ type VolumeInfo struct {
 			Options    map[string]string `json:"options"`
 		} `json:"glusterfs"`
 	} `json:"mount"`
-	Label string `json:"label,omitempty"`
-	Block struct {
+	Block     bool `json:"block,omitempty"`
+	BlockInfo struct {
 		FreeSize     int `json:"freesize,omitempty"`
 		BlockVolumes []string
 	}
@@ -209,7 +209,7 @@ type BlockVolumeInfo struct {
 		Iqn   string   `json:"iqn"`
 		Lun   int      `json:"lun"`
 		/*
-		Options   map[string]string `json:"options"`  // needed?...
+			Options   map[string]string `json:"options"`  // needed?...
 		*/
 	} `json:"blockvolume"`
 }
