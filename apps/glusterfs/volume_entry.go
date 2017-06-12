@@ -589,3 +589,7 @@ func (v *VolumeEntry) checkBricksCanBeDestroyed(db *bolt.DB,
 func VolumeEntryUpgrade(tx *bolt.Tx) error {
 	return nil
 }
+
+func (v *VolumeEntry) BlockVolumeAdd(id string) {
+	v.Info.BlockInfo.BlockVolumes = append(v.Info.BlockInfo.BlockVolumes, id)
+}

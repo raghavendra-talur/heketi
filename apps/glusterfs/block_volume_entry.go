@@ -275,19 +275,27 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 			return err
 		}
 
-		cluster, err := NewClusterEntryFromId(tx, v.Info.Clusters)
+		cluster, err := NewClusterEntryFromId(tx, v.Info.Cluster)
 		if err != nil {
 			return err
 		}
 
-		volume, err := NewVolumeEntryFromId(tx, volume_id /* TODO */)
+		cluster.VolumeAdd(v.Info.Id)
+
+		err = cluster.Save(tx)
+		if err != nil {
+			return err
+		}
+		volume, err := NewVolumeEntryFromId(tx, blockHostingVolume)
 		if err != nil {
 			return err
 		}
 
 		volume.BlockVolumeAdd(v.Info.Id)
-		return volume.Save(tx)
-
+		err = volume.Save(tx)
+		if err != nil {
+			return err
+		}
 		// TODO:
 		//  do we need to save the cluster? do we store anything in
 		//  the cluster

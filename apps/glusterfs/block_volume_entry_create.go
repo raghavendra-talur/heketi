@@ -55,6 +55,8 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 			return err
 		}
 
+		v.Info.Cluster = bhvol.Info.Cluster
+
 		for _, nodeId := range bhvol.Info.Mount.GlusterFS.Hosts {
 			// Check if glusterd is up here.
 		}

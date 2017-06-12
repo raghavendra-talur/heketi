@@ -212,6 +212,7 @@ type BlockVolumeInfo struct {
 			Options   map[string]string `json:"options"`  // needed?...
 		*/
 	} `json:"blockvolume"`
+	Cluster string `json:"cluster"`
 }
 
 type BlockVolumeInfoResponse struct {
