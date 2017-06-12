@@ -33,7 +33,7 @@ func (v *BlockVolumeEntry) createBlockVolume(db *bolt.DB,
 	}
 
 	v.Info.BlockVolume.Iqn = blockVolumeInfo.Iqn
-	v.Info.BlockVolume.Hosts = vr.BlockHosts
+	v.Info.BlockVolume.Hosts = blockVolumeInfo.BlockHosts
 	v.Info.BlockVolume.Lun = 0
 
 	return nil
@@ -57,7 +57,9 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 
 		v.Info.Cluster = bhvol.Info.Cluster
 
-		for _, nodeId := range bhvol.Info.Mount.GlusterFS.Hosts {
+		var nodeId string
+
+		for _, nodeId = range bhvol.Info.Mount.GlusterFS.Hosts {
 			// Check if glusterd is up here.
 		}
 

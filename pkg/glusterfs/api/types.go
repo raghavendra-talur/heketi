@@ -213,7 +213,8 @@ type BlockVolumeInfo struct {
 			Options   map[string]string `json:"options"`  // needed?...
 		*/
 	} `json:"blockvolume"`
-	Cluster string `json:"cluster"`
+	Cluster            string `json:"cluster,omitempty"`
+	BlockHostingVolume string `json:"blockhostingvolume,omitempty"`
 }
 
 type BlockVolumeInfoResponse struct {
@@ -273,6 +274,54 @@ func (v *VolumeInfoResponse) String() string {
 		s += fmt.Sprintf("Snapshot Factor: %.2f\n",
 			v.Snapshot.Factor)
 	}
+
+	/*
+		s += "\nBricks:\n"
+		for _, b := range v.Bricks {
+			s += fmt.Sprintf("Id: %v\n"+
+				"Path: %v\n"+
+				"Size (GiB): %v\n"+
+				"Node: %v\n"+
+				"Device: %v\n\n",
+				b.Id,
+				b.Path,
+				b.Size/(1024*1024),
+				b.NodeId,
+				b.DeviceId)
+		}
+	*/
+
+	return s
+}
+
+func NewBlockVolumeInfoResponse() *BlockVolumeInfoResponse {
+
+	info := &BlockVolumeInfoResponse{}
+	// Nothing to Construct now maybe for future
+
+	return info
+}
+
+// String functions
+func (v *BlockVolumeInfoResponse) String() string {
+	s := fmt.Sprintf("Name: %v\n"+
+		"Size: %v\n"+
+		"Volume Id: %v\n"+
+		"Cluster Id: %v\n"+
+		"Hosts: %v\n"+
+		"IQN=%v\n"+
+		"LUN: %v\n"+
+		"Hacount: %v\n"+
+		"Block Hosting Volume: %v\n",
+		v.Name,
+		v.Size,
+		v.Id,
+		v.Cluster,
+		v.BlockVolume.Hosts,
+		v.BlockVolume.Iqn,
+		v.BlockVolume.Lun,
+		v.Hacount,
+		v.BlockHostingVolume)
 
 	/*
 		s += "\nBricks:\n"

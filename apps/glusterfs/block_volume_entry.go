@@ -35,12 +35,12 @@ func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
 
 func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator, clusters []string) (*VolumeEntry, error) {
 	var msg api.VolumeCreateRequest
-	err := db.View(func(tx *bolt.Tx) error {
-		msg.Clusters = clusters
-		msg.Durability.Type = api.DurabilityReplicate
-		msg.Size = NewBlockHostingVolumeSize
-		msg.Durability.Replicate.Replica = 3
-	})
+	var err error
+
+	msg.Clusters = clusters
+	msg.Durability.Type = api.DurabilityReplicate
+	msg.Size = NewBlockHostingVolumeSize
+	msg.Durability.Replicate.Replica = 3
 
 	vol := NewVolumeEntryFromRequest(&msg)
 
@@ -64,6 +64,8 @@ func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator A
 		if err != nil {
 			return err
 		}
+
+		return err
 	})
 
 	if err != nil {
@@ -139,10 +141,12 @@ func (v *BlockVolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.BlockVolumeInfoRes
 
 	info := api.NewBlockVolumeInfoResponse()
 	info.Id = v.Info.Id
-	info.Cluster = v.Info.Clusters
+	info.Cluster = v.Info.Cluster
 	info.BlockVolume = v.Info.BlockVolume
 	info.Size = v.Info.Size
 	info.Name = v.Info.Name
+	info.Hacount = v.Info.Hacount
+	info.BlockHostingVolume = v.Info.BlockHostingVolume
 
 	return info, nil
 }
@@ -233,6 +237,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 					possibleVolumes = append(possibleVolumes, vol)
 				}
 			}
+			return err
 		})
 	}
 
@@ -252,6 +257,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 					}
 				}
 			}
+			return err
 		})
 		if err != nil {
 			logger.Warning("%v", err.Error())
@@ -318,6 +324,8 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		if err != nil {
 			return err
 		}
+
+		return err
 		// TODO:
 		//  do we need to save the cluster? do we store anything in
 		//  the cluster
