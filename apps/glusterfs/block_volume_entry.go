@@ -197,7 +197,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 			// flag, then only consider those. Otherwise consider
 			// all clusters.
 			//
-			var blockClusters []string{}
+			var blockClusters []string
 			for clusterId := range possibleClusters {
 				c, err := NewClusterEntryFromId(tx, clusterId)
 				if err != nil {
@@ -344,7 +344,7 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 	var executorhost string
 	var NodeId string
 	var blockHostingVolumeName string
-	for _, NodeId = range v.Info.BlockVolume.Hosts{
+	for _, NodeId = range v.Info.BlockVolume.Hosts {
 		// Check glusterd/gluster-blockd here
 	}
 	db.View(func(tx *bolt.Tx) error {
@@ -356,10 +356,10 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 			}
 			executorhost = node.ManageHostName()
 		}
-		volume, err := NewVolumeEntryFromId(tx,v.Info.BlockHostingVolume)
+		volume, err := NewVolumeEntryFromId(tx, v.Info.BlockHostingVolume)
 		if err != nil {
-				logger.LogError("Unable to determine brick node: %v", err)
-				return err
+			logger.LogError("Unable to determine brick node: %v", err)
+			return err
 		}
 		blockHostingVolumeName = volume.Info.Name
 		return nil
@@ -367,16 +367,16 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 
 	// Determine if we can destroy the volume
 	// [ashiq] we can skip this part for now as there is nothing to verify as we dont have snapshotting yet
-/*
-	err := executor.BlockVolumeDestroyCheck(executorhost, v.Info.Name)
-	if err != nil {
-		logger.Err(err)
-		return err
-	}
-*/
+	/*
+		err := executor.BlockVolumeDestroyCheck(executorhost, v.Info.Name)
+		if err != nil {
+			logger.Err(err)
+			return err
+		}
+	*/
 	// :TODO: What if the host is no longer available, we may need to try others
 	// (here we call gluster_block destroy)
-	err = executor.BlockVolumeDestroy(executorhost,blockHostingVolumeName, v.Info.Name)
+	err = executor.BlockVolumeDestroy(executorhost, blockHostingVolumeName, v.Info.Name)
 	if err != nil {
 		logger.LogError("Unable to delete volume: %v", err)
 		return err
@@ -396,7 +396,7 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 			// Do not return here.. keep going
 		}
 
-		blockHostingVolume, err := NewVolumeEntryFromId(tx,v.Info.BlockHostingVolume)
+		blockHostingVolume, err := NewVolumeEntryFromId(tx, v.Info.BlockHostingVolume)
 		if err != nil {
 			logger.Err(err)
 			// Do not return here.. keep going
@@ -413,23 +413,6 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 			logger.Err(err)
 			// Do not return here.. keep going
 		}
-
-
-		/*
-			or:
-			volume, err := NewVolumeEntryFromId(tx, v.Info.VolumeName)
-			if err != nil {
-				logger.Err(err)
-				// Do not return here.. keep going
-			}
-			volume.BlockVolumeDelete(v.Info.Id)
-
-			err = volume.Save(tx)
-			if err != nil {
-				logger.Err(err)
-				// Do not return here.. keep going
-			}
-		*/
 
 		v.Delete(tx)
 
