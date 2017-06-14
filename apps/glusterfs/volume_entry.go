@@ -228,37 +228,34 @@ func (v *VolumeEntry) Create(db *bolt.DB,
 
 	// Get list of clusters
 	var possibleClusters []string
-	var nonBlockClusters []string
-
-	err := db.View(func(tx *bolt.Tx) error {
-		var err error
-
-		if len(v.Info.Clusters) == 0 {
+	if len(v.Info.Clusters) == 0 {
+		err := db.View(func(tx *bolt.Tx) error {
+			var err error
 			possibleClusters, err = ClusterList(tx)
-		} else {
-			possibleClusters = v.Info.Clusters
+			return err
+		})
+		if err != nil {
+			return err
 		}
-
-		//
-		// Only consider those clusters that are not equipped
-		// with the Block flag.
-		//
-
-		for _, clusterId := range possibleClusters {
-			c, err := NewClusterEntryFromId(tx, clusterId)
-			if err != nil {
-				return err
-			}
-			if !c.Info.Block {
-				nonBlockClusters = append(nonBlockClusters, clusterId)
-			}
-		}
-		possibleClusters = nonBlockClusters
-		return err
-	})
-	if err != nil {
-		return err
+	} else {
+		possibleClusters = v.Info.Clusters
 	}
+
+	//
+	// Only consider those clusters that are not equipped
+	// with the Block flag.
+	//
+	nonBlockClusters := []string{}
+	for clusterId := range possibleClusters {
+		c, err := NewClusterEntryFromId(tx, clusterId)
+		if err != nil {
+			return err
+		}
+		if !c.Block {
+			nonBlockClusters = append(nonBlockClusters, clusterId)
+		}
+	}
+	possibleClusters = nonBlockClusters
 
 	// Check we have clusters
 	if len(possibleClusters) == 0 {
