@@ -225,12 +225,6 @@ type BlockVolumeListResponse struct {
 	BlockVolumes []string `json:"blockvolumes"`
 }
 
-/*
-type BlockVolumeExpandRequest struct {
-	Size int `json:"expand_size"`
-}
-*/
-
 // Constructors
 
 func NewVolumeInfoResponse() *VolumeInfoResponse {
