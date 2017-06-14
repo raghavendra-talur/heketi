@@ -91,36 +91,6 @@ func (s *SshExecutor) BlockVolumeInfo(host string, volume string, gluster_volume
 	return &executors.BlockVolumeInfo{}, nil
 }
 
-/*
-func (s *SshExecutor) VolumeExpand(host string,
-	volume *executors.VolumeRequest) (*executors.VolumeInfo, error) {
-
-	godbc.Require(volume != nil)
-	godbc.Require(host != "")
-	godbc.Require(len(volume.Bricks) > 0)
-	godbc.Require(volume.Name != "")
-
-	commands := s.createAddBrickCommands(volume,
-		0, // start at the beginning of the brick list
-		inSet,
-		maxPerSet)
-
-	// Rebalance if configured
-	if s.RemoteExecutor.RebalanceOnExpansion() {
-		commands = append(commands,
-			fmt.Sprintf("gluster --mode=script volume rebalance %v start", volume.Name))
-	}
-
-	// Execute command
-	_, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
-	if err != nil {
-		return nil, err
-	}
-
-	return &executors.VolumeInfo{}, nil
-}
-*/
-
 func (s *SshExecutor) BlockVolumeDestroy(host string, volume string) error {
 	godbc.Require(host != "")
 	godbc.Require(volume != "")

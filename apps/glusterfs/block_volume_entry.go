@@ -408,13 +408,3 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 
 	return err
 }
-
-/* TODO implement Expand
-func (v *VolumeEntry) Expand(db *bolt.DB,
-	executor executors.Executor,
-	allocator Allocator,
-	sizeGB int) (e error) {
-
-	return nil
-}
-*/
