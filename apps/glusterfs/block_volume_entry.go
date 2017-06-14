@@ -203,7 +203,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	// flag, then only consider those. Otherwise consider
 	// all clusters.
 	//
-	var blockClusters []string{}
+	var blockClusters []string
 	for clusterId := range possibleClusters {
 		c, err := NewClusterEntryFromId(tx, clusterId)
 		if err != nil {
@@ -216,7 +216,6 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	if blockClusters != nil {
 		possibleClusters = blockClusters
 	}
-
 
 	if len(possibleClusters) == 0 {
 		logger.LogError("BlockVolume being ask to be created, but there are no clusters configured")
