@@ -228,34 +228,37 @@ func (v *VolumeEntry) Create(db *bolt.DB,
 
 	// Get list of clusters
 	var possibleClusters []string
-	if len(v.Info.Clusters) == 0 {
-		err := db.View(func(tx *bolt.Tx) error {
-			var err error
-			possibleClusters, err = ClusterList(tx)
-			return err
-		})
-		if err != nil {
-			return err
-		}
-	} else {
-		possibleClusters = v.Info.Clusters
-	}
+	var nonBlockClusters []string
 
-	//
-	// Only consider those clusters that are not equipped
-	// with the Block flag.
-	//
-	nonBlockClusters := []string{}
-	for clusterId := range possibleClusters {
-		c, err := NewClusterEntryFromId(tx, clusterId)
-		if err != nil {
-			return err
+	err := db.View(func(tx *bolt.Tx) error {
+		var err error
+
+		if len(v.Info.Clusters) == 0 {
+			possibleClusters, err = ClusterList(tx)
+		} else {
+			possibleClusters = v.Info.Clusters
 		}
-		if !c.Block {
-			nonBlockClusters = append(nonBlockClusters, clusterId)
+
+		//
+		// Only consider those clusters that are not equipped
+		// with the Block flag.
+		//
+
+		for _, clusterId := range possibleClusters {
+			c, err := NewClusterEntryFromId(tx, clusterId)
+			if err != nil {
+				return err
+			}
+			if !c.Info.Block {
+				nonBlockClusters = append(nonBlockClusters, clusterId)
+			}
 		}
+		possibleClusters = nonBlockClusters
+		return err
+	})
+	if err != nil {
+		return err
 	}
-	possibleClusters = nonBlockClusters
 
 	// Check we have clusters
 	if len(possibleClusters) == 0 {
@@ -302,7 +305,6 @@ func (v *VolumeEntry) Create(db *bolt.DB,
 
 	// For each cluster look for storage space for this volume
 	var brick_entries []*BrickEntry
-	var err error
 	for _, cluster := range clusters {
 
 		// Check this cluster for space

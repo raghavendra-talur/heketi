@@ -267,11 +267,11 @@ func (a *App) setBlockSettings() {
 		// From volume_entry.go
 		CreateBlockHostingVolumes = a.conf.CreateBlockHostingVolumes
 	}
-	if a.conf.BlockHostingVolumeNewSize != 0 {
-		logger.Info("Block: New Block Hosting Volume size %v GB", a.conf.BlockHostingVolumeNewSize)
+	if a.conf.NewBlockHostingVolumeSize != 0 {
+		logger.Info("Block: New Block Hosting Volume size %v GB", a.conf.NewBlockHostingVolumeSize)
 
-		// From
-		NewBlockHostingVolumeSize = uint64(a.conf.NewBlockHostingVolumeSize) * 1024 * 1024
+		// Should be in GB as this is input for block hosting volume create
+		NewBlockHostingVolumeSize = a.conf.NewBlockHostingVolumeSize
 	}
 }
 

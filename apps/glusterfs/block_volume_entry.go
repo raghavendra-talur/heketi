@@ -189,6 +189,25 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		err := db.View(func(tx *bolt.Tx) error {
 			var err error
 			possibleClusters, err = ClusterList(tx)
+			//
+			// If there are any clusters marked with the Block
+			// flag, then only consider those. Otherwise consider
+			// all clusters.
+			//
+			var blockClusters []string
+			for _, clusterId := range possibleClusters {
+				c, err := NewClusterEntryFromId(tx, clusterId)
+				if err != nil {
+					return err
+				}
+				if c.Info.Block {
+					blockClusters = append(blockClusters, clusterId)
+				}
+			}
+			if blockClusters != nil {
+				possibleClusters = blockClusters
+			}
+
 			return err
 		})
 		if err != nil {
@@ -196,25 +215,6 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		}
 	} else {
 		possibleClusters = v.Info.Clusters
-	}
-
-	//
-	// If there are any clusters marked with the Block
-	// flag, then only consider those. Otherwise consider
-	// all clusters.
-	//
-	var blockClusters []string
-	for clusterId := range possibleClusters {
-		c, err := NewClusterEntryFromId(tx, clusterId)
-		if err != nil {
-			return err
-		}
-		if c.Block {
-			blockClusters = append(blockClusters, clusterId)
-		}
-	}
-	if blockClusters != nil {
-		possibleClusters = blockClusters
 	}
 
 	if len(possibleClusters) == 0 {
@@ -230,12 +230,18 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 			c, err := NewClusterEntryFromId(tx, clusterId)
 			for _, vol := range c.Info.Volumes {
 				volEntry, err := NewVolumeEntryFromId(tx, vol)
+				if err != nil {
+					return err
+				}
 				if volEntry.Info.Block {
 					possibleVolumes = append(possibleVolumes, vol)
 				}
 			}
 			return err
 		})
+		if err != nil {
+			return err
+		}
 	}
 
 	var volumes []string
@@ -263,10 +269,16 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		}
 	}
 
+	var blockHostingVolume string
 	if len(volumes) == 0 {
 		logger.Info("No block hosting volumes found in the cluster list")
 		bhvol, err := NewBlockHostingVolume(db, executor, allocator, v.Info.Clusters)
-
+		if err != nil {
+			return err
+		}
+		blockHostingVolume = bhvol.Info.Id
+	} else {
+		blockHostingVolume = volumes[0]
 	}
 
 	defer func() {
@@ -278,7 +290,6 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		}
 	}()
 
-	blockHostingVolume := volumes[0]
 	// Cluster -> Volume (gluster-volume) -> BlockVolume
 	// Create gluster-block volume - this calls gluster_block
 	// TODO...
@@ -373,7 +384,7 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 	*/
 	// :TODO: What if the host is no longer available, we may need to try others
 	// (here we call gluster_block destroy)
-	err = executor.BlockVolumeDestroy(executorhost, blockHostingVolumeName, v.Info.Name)
+	err := executor.BlockVolumeDestroy(executorhost, blockHostingVolumeName, v.Info.Name)
 	if err != nil {
 		logger.LogError("Unable to delete volume: %v", err)
 		return err
