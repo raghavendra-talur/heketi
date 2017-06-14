@@ -308,6 +308,7 @@ func (v *VolumeEntry) Create(db *bolt.DB,
 
 	// For each cluster look for storage space for this volume
 	var brick_entries []*BrickEntry
+	var err error
 	for _, cluster := range clusters {
 
 		// Check this cluster for space
