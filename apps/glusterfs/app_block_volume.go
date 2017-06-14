@@ -81,7 +81,6 @@ func (a *App) BlockVolumeCreate(w http.ResponseWriter, r *http.Request) {
 
 		logger.Info("Created block volume %v", blockvol.Info.Id)
 
-		// Done
 		return "/blockvolumes/" + blockvol.Info.Id, nil
 	})
 }
@@ -118,7 +117,6 @@ func (a *App) BlockVolumeList(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) BlockVolumeInfo(w http.ResponseWriter, r *http.Request) {
 
-	// Get volume id from URL
 	vars := mux.Vars(r)
 	id := vars["id"]
 
@@ -155,15 +153,11 @@ func (a *App) BlockVolumeInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) BlockVolumeDelete(w http.ResponseWriter, r *http.Request) {
-	// Get the id from the URL
 	vars := mux.Vars(r)
 	id := vars["id"]
 
-	// Get volume entry
 	var volume *BlockVolumeEntry
 	err := a.db.View(func(tx *bolt.Tx) error {
-
-		// Access volume entry
 		var err error
 		volume, err = NewBlockVolumeEntryFromId(tx, id)
 		if err == ErrNotFound {
@@ -175,7 +169,6 @@ func (a *App) BlockVolumeDelete(w http.ResponseWriter, r *http.Request) {
 		}
 
 		return nil
-
 	})
 	if err != nil {
 		return
@@ -183,13 +176,11 @@ func (a *App) BlockVolumeDelete(w http.ResponseWriter, r *http.Request) {
 
 	a.asyncManager.AsyncHttpRedirectFunc(w, r, func() (string, error) {
 
-		// Actually destroy the Volume here
 		err := volume.Destroy(a.db, a.executor)
 
 		// If it fails for some reason, we will need to add to the DB again
 		// or hold state on the entry "DELETING"
 
-		// Show that the key has been deleted
 		if err != nil {
 			logger.LogError("Failed to delete volume %v: %v", volume.Info.Id, err)
 			return "", err
@@ -197,6 +188,5 @@ func (a *App) BlockVolumeDelete(w http.ResponseWriter, r *http.Request) {
 
 		logger.Info("Deleted volume [%s]", id)
 		return "", nil
-
 	})
 }
