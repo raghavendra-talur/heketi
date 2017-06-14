@@ -79,7 +79,6 @@ func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator A
 	logger.Info("Block Hosting Volume created (name[%v] id[%v] ", vol.Info.Name, vol.Info.Id)
 
 	return vol, err
-
 }
 
 func NewBlockVolumeEntry() *BlockVolumeEntry {
