@@ -76,7 +76,7 @@ func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator A
 		}
 	}
 
-	logger.Info("Block Hosting Volume created %v", vol.Info.Name)
+	logger.Info("Block Hosting Volume created (name[%v] id[%v] ", vol.Info.Name, vol.Info.Id)
 
 	return vol, err
 
@@ -285,6 +285,8 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	} else {
 		blockHostingVolume = volumes[0]
 	}
+
+	logger.Debug("Using block hosting volume id[%v]", blockHostingVolume)
 
 	defer func() {
 		if e != nil {
