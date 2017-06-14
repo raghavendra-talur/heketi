@@ -174,8 +174,8 @@ type VolumeInfo struct {
 	} `json:"mount"`
 	Block     bool `json:"block,omitempty"`
 	BlockInfo struct {
-		FreeSize     int `json:"freesize,omitempty"`
-		BlockVolumes []string
+		FreeSize     int              `json:"freesize,omitempty"`
+		BlockVolumes sort.StringSlice `json:"blockvolume,omitempty"`
 	}
 }
 

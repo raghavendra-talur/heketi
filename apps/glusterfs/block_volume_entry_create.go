@@ -47,6 +47,7 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	// Setup list of bricks
 	vr := &executors.BlockVolumeRequest{}
 	var executorhost string
+	var blockHostingVolumeName string
 
 	// TODO -- which NodeId
 	err := db.View(func(tx *bolt.Tx) error {
@@ -56,6 +57,7 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 		}
 
 		v.Info.Cluster = bhvol.Info.Cluster
+		blockHostingVolumeName = bhvol.Info.Name
 
 		var nodeId string
 
@@ -82,7 +84,7 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	// Setup volume information in the request
 	vr.Name = v.Info.Name
 	vr.BlockHosts = v.Info.BlockVolume.Hosts
-	vr.GlusterVolumeName = blockHostingVolume
+	vr.GlusterVolumeName = blockHostingVolumeName
 	vr.Hacount = v.Info.Hacount
 	vr.Size = v.Info.Size
 

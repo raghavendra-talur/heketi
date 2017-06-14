@@ -342,7 +342,11 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 	logger.Info("Destroying volume %v", v.Info.Id)
 
 	var executorhost string
-	//TODO --- get hold of a node id ...
+	var NodeId string
+	var blockHostingVolumeName string
+	for _, NodeId = range v.Info.BlockVolume.Hosts{
+		// Check glusterd/gluster-blockd here
+	}
 	db.View(func(tx *bolt.Tx) error {
 		if executorhost == "" {
 			node, err := NewNodeEntryFromId(tx, NodeId)
@@ -352,19 +356,27 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 			}
 			executorhost = node.ManageHostName()
 		}
+		volume, err := NewVolumeEntryFromId(tx,v.Info.BlockHostingVolume)
+		if err != nil {
+				logger.LogError("Unable to determine brick node: %v", err)
+				return err
+		}
+		blockHostingVolumeName = volume.Info.Name
 		return nil
 	})
 
 	// Determine if we can destroy the volume
+	// [ashiq] we can skip this part for now as there is nothing to verify as we dont have snapshotting yet
+/*
 	err := executor.BlockVolumeDestroyCheck(executorhost, v.Info.Name)
 	if err != nil {
 		logger.Err(err)
 		return err
 	}
-
+*/
 	// :TODO: What if the host is no longer available, we may need to try others
 	// (here we call gluster_block destroy)
-	err = executor.BlockVolumeDestroy(executorhost, v.Info.Name)
+	err = executor.BlockVolumeDestroy(executorhost,blockHostingVolumeName, v.Info.Name)
 	if err != nil {
 		logger.LogError("Unable to delete volume: %v", err)
 		return err
@@ -378,12 +390,30 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 			// Do not return here.. keep going
 		}
 		cluster.VolumeDelete(v.Info.Id)
-
 		err = cluster.Save(tx)
 		if err != nil {
 			logger.Err(err)
 			// Do not return here.. keep going
 		}
+
+		blockHostingVolume, err := NewVolumeEntryFromId(tx,v.Info.BlockHostingVolume)
+		if err != nil {
+			logger.Err(err)
+			// Do not return here.. keep going
+		}
+
+		blockHostingVolume.BlockVolumeDelete(v.Info.Id)
+		if err != nil {
+			logger.Err(err)
+			// Do not return here.. keep going
+		}
+		blockHostingVolume.Save(tx)
+
+		if err != nil {
+			logger.Err(err)
+			// Do not return here.. keep going
+		}
+
 
 		/*
 			or:

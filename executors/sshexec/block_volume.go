@@ -40,7 +40,7 @@ func (s *SshExecutor) BlockVolumeCreate(host string,
 	// Execute command
 	output, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
 	if err != nil {
-		s.BlockVolumeDestroy(host, volume.Name)
+		s.BlockVolumeDestroy(host, volume.GlusterVolumeName, volume.Name)
 		return nil, err
 	}
 
@@ -91,29 +91,31 @@ func (s *SshExecutor) BlockVolumeInfo(host string, volume string, gluster_volume
 	return &executors.BlockVolumeInfo{}, nil
 }
 
-func (s *SshExecutor) BlockVolumeDestroy(host string, volume string) error {
+func (s *SshExecutor) BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error {
 	godbc.Require(host != "")
-	godbc.Require(volume != "")
-
-	gluster_volume := ""
+	godbc.Require(blockHostingVolumeName != "")
+	godbc.Require(blockVolumeName != "")
 
 	commands := []string{
-		fmt.Sprintf("gluster-block --delete %v --volume %v", volume, gluster_volume),
+		fmt.Sprintf("gluster-block delete %v/%v", blockHostingVolumeName, blockVolumeName),
 	}
 
 	_, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
 	if err != nil {
-		logger.LogError("Unable to delete volume %v: %v", volume, err)
+		logger.LogError("Unable to delete volume %v: %v", blockVolumeName, err)
 	}
 
 	return nil
 }
 
+/*
 func (s *SshExecutor) BlockVolumeDestroyCheck(host, volume string) error {
 	godbc.Require(host != "")
 	godbc.Require(volume != "")
 
 	// TODO: do we need checks?
+	// Nope nothing to check
 
 	return nil
 }
+*/

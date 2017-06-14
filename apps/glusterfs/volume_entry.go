@@ -608,4 +608,9 @@ func VolumeEntryUpgrade(tx *bolt.Tx) error {
 
 func (v *VolumeEntry) BlockVolumeAdd(id string) {
 	v.Info.BlockInfo.BlockVolumes = append(v.Info.BlockInfo.BlockVolumes, id)
+	v.Info.BlockInfo.BlockVolumes.Sort()
+}
+
+func (v *VolumeEntry) BlockVolumeDelete(id string) {
+	v.Info.BlockInfo.BlockVolumes = utils.SortedStringsDelete(v.Info.BlockInfo.BlockVolumes, id)
 }

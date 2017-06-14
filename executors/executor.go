@@ -28,6 +28,7 @@ type Executor interface {
 	VolumeInfo(host string, volume string) (*Volume, error)
 	SetLogLevel(level string)
 	BlockVolumeCreate(host string, blockVolume *BlockVolumeRequest) (*BlockVolumeInfo, error)
+	BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error
 }
 
 // Enumerate durability types
