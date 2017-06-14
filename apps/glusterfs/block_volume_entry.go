@@ -249,6 +249,8 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		}
 	}
 
+	logger.Debug("Using the following possible block hosting volumes: %+v", possibleVolumes)
+
 	var volumes []string
 	for _, vol := range possibleVolumes {
 		err := db.View(func(tx *bolt.Tx) error {
