@@ -44,7 +44,6 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	godbc.Require(db != nil)
 	godbc.Require(blockHostingVolume != "")
 
-	// Setup list of bricks
 	vr := &executors.BlockVolumeRequest{}
 	var executorhost string
 	var blockHostingVolumeName string
