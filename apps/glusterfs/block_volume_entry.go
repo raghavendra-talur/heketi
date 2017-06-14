@@ -74,7 +74,6 @@ func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator A
 		if err != nil {
 			logger.LogError("Failed to destroy the failed Block Hosting volume: %v", err)
 		}
-
 	}
 
 	logger.Info("Block Hosting Volume created %v", vol.Info.Name)
@@ -296,9 +295,6 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		}
 	}()
 
-	// Cluster -> Volume (gluster-volume) -> BlockVolume
-	// Create gluster-block volume - this calls gluster_block
-	// TODO...
 	err := v.createBlockVolume(db, executor, blockHostingVolume)
 	if err != nil {
 		return err
@@ -328,6 +324,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		if err != nil {
 			return err
 		}
+
 		volume, err := NewVolumeEntryFromId(tx, blockHostingVolume)
 		if err != nil {
 			return err
@@ -340,10 +337,6 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		}
 
 		return err
-		// TODO:
-		//  do we need to save the cluster? do we store anything in
-		//  the cluster
-		//  [ashiq]Yes, We save the Volume ids list which belongs to the cluster
 	})
 	if err != nil {
 		return err
