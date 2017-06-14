@@ -89,7 +89,6 @@ func (a *App) BlockVolumeList(w http.ResponseWriter, r *http.Request) {
 
 	var list api.BlockVolumeListResponse
 
-	// Get all the cluster ids from the DB
 	err := a.db.View(func(tx *bolt.Tx) error {
 		var err error
 
