@@ -144,6 +144,12 @@ func NewApp(configIo io.Reader) *App {
 				return err
 			}
 
+			_, err = tx.CreateBucketIfNotExists([]byte(BOLTDB_BUCKET_BLOCKVOLUME))
+			if err != nil {
+				logger.LogError("Unable to create blockvolume bucket in DB")
+				return err
+			}
+
 			// Handle Upgrade Changes
 			err = app.Upgrade(tx)
 			if err != nil {
