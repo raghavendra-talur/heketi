@@ -33,7 +33,7 @@ func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
 	return list, nil
 }
 
-func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator, clusters []string) (*VolumeEntry, error) {
+func CreateBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator, clusters []string) (*VolumeEntry, error) {
 	var msg api.VolumeCreateRequest
 	var err error
 
@@ -278,7 +278,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	var blockHostingVolume string
 	if len(volumes) == 0 {
 		logger.Info("No block hosting volumes found in the cluster list")
-		bhvol, err := NewBlockHostingVolume(db, executor, allocator, v.Info.Clusters)
+		bhvol, err := CreateBlockHostingVolume(db, executor, allocator, v.Info.Clusters)
 		if err != nil {
 			return err
 		}
