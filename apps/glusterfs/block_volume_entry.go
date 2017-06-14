@@ -32,6 +32,7 @@ func BlockVolumeList(tx *bolt.Tx) ([]string, error) {
 	}
 	return list, nil
 }
+
 func NewBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocator Allocator, clusters []string) (*VolumeEntry, error) {
 	var msg api.VolumeCreateRequest
 	err := db.View(func(tx *bolt.Tx) error {
