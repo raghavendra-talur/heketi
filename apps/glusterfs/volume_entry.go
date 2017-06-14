@@ -231,9 +231,25 @@ func (v *VolumeEntry) Create(db *bolt.DB,
 	if len(v.Info.Clusters) == 0 {
 		err := db.View(func(tx *bolt.Tx) error {
 			var err error
-			possibleClusters, err = ClusterList(tx)
-			return err
-
+			allClusters, err = ClusterList(tx)
+			if err != nil {
+				return nil
+			}
+			//
+			// Only consider those clusters that are not equipped
+			// with the Block flag.
+			//
+			possibleClusters := []string{}
+			for clusterId := range allClusters {
+				c, err := NewClusterEntryFromId(tx, clusterId)
+				if err != nil {
+					return err
+				}
+				if !c.Block {
+					possibleClusters = append(possibleClusters, clusterId)
+				}
+			}
+			return nil
 		})
 		if err != nil {
 			return err
