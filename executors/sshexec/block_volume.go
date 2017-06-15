@@ -63,9 +63,12 @@ func (s *SshExecutor) BlockVolumeCreate(host string,
 	return &blockVolumeInfo, nil
 }
 
-func (s *SshExecutor) BlockVolumeInfo(host string, blockVolumeName string, blockHostingVolumeName string) (*executors.BlockVolumeInfo, error) {
+func (s *SshExecutor) BlockVolumeInfo(host string,
+	blockHostingVolumeName string,
+	blockVolumeName string) (*executors.BlockVolumeInfo, error) {
 
-	godbc.Require(volume != "")
+	godbc.Require(blockHostingVolumeName != "")
+	godbc.Require(blockVolumeName != "")
 	godbc.Require(host != "")
 
 	cmd := fmt.Sprintf("gluster-block info %v/%v", blockHostingVolumeName, blockVolumeName)
