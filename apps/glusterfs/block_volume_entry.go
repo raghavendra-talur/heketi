@@ -357,6 +357,12 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 	for _, NodeId = range v.Info.BlockVolume.Hosts {
 		// Check glusterd/gluster-blockd here
 	}
+	NodeId, err := GetVerifiedNodeId(db, executor, v.Info.Cluster)
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("Using node [%v]", NodeId)
 	db.View(func(tx *bolt.Tx) error {
 		if executorhost == "" {
 			node, err := NewNodeEntryFromId(tx, NodeId)
@@ -386,7 +392,7 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 	*/
 	// :TODO: What if the host is no longer available, we may need to try others
 	// (here we call gluster_block destroy)
-	err := executor.BlockVolumeDestroy(executorhost, blockHostingVolumeName, v.Info.Name)
+	err = executor.BlockVolumeDestroy(executorhost, blockHostingVolumeName, v.Info.Name)
 	if err != nil {
 		logger.LogError("Unable to delete volume: %v", err)
 		return err

@@ -31,7 +31,7 @@ func (s *SshExecutor) BlockVolumeCreate(host string,
 		Result string `json:"RESULT"`
 	}
 
-	cmd := fmt.Sprintf("gluster-block --create vol_%v/%v  ha %v  %v %v --json",
+	cmd := fmt.Sprintf("gluster-block create vol_%v/%v  ha %v  %v %v --json",
 		volume.GlusterVolumeName, volume.Name, volume.Hacount, strings.Join(volume.BlockHosts, ","), volume.Size)
 
 	// Initialize the commands with the create command

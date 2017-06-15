@@ -16,17 +16,17 @@ import (
 )
 
 func (v *BlockVolumeEntry) createBlockVolume(db *bolt.DB,
-	executor executors.Executor, blockHostingVolume string) error {
+	executor executors.Executor, blockHostingVolumeId string) error {
 
 	godbc.Require(db != nil)
-	godbc.Require(blockHostingVolume != "")
+	godbc.Require(blockHostingVolumeId != "")
 
-	vr, host, err := v.createBlockVolumeRequest(db, blockHostingVolume)
+	vr, host, err := v.createBlockVolumeRequest(db, executor,
+						blockHostingVolumeId)
 	if err != nil {
 		return err
 	}
 
-	// Create the volume
 	blockVolumeInfo, err := executor.BlockVolumeCreate(host, vr)
 	if err != nil {
 		return err
@@ -40,9 +40,10 @@ func (v *BlockVolumeEntry) createBlockVolume(db *bolt.DB,
 }
 
 func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
-	blockHostingVolume string) (*executors.BlockVolumeRequest, string, error) {
+	executor executors.Executor,
+	blockHostingVolumeId string) (*executors.BlockVolumeRequest, string, error) {
 	godbc.Require(db != nil)
-	godbc.Require(blockHostingVolume != "")
+	godbc.Require(blockHostingVolumeId != "")
 
 	vr := &executors.BlockVolumeRequest{}
 	var executorhost string
@@ -50,7 +51,8 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 
 	// TODO -- which NodeId
 	err := db.View(func(tx *bolt.Tx) error {
-		bhvol, err := NewVolumeEntryFromId(tx, blockHostingVolume)
+		logger.Debug("Looking for block hosting volume %v", blockHostingVolumeId)
+		bhvol, err := NewVolumeEntryFromId(tx, blockHostingVolumeId)
 		if err != nil {
 			return err
 		}
@@ -58,11 +60,12 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 		v.Info.Cluster = bhvol.Info.Cluster
 		blockHostingVolumeName = bhvol.Info.Name
 
-		var nodeId string
-
-		for _, nodeId = range bhvol.Info.Mount.GlusterFS.Hosts {
-			// Check if glusterd is up here.
+		nodeId, err := GetVerifiedNodeId(db, executor, v.Info.Cluster)
+		if err != nil {
+			return err
 		}
+
+		logger.Debug("Using gluster node [%v]", nodeId)
 
 		node, err := NewNodeEntryFromId(tx, nodeId)
 		if err != nil {
