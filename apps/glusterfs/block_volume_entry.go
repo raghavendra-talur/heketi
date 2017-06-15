@@ -95,7 +95,7 @@ func NewBlockVolumeEntryFromRequest(req *api.BlockVolumeCreateRequest) *BlockVol
 	vol.Info.Size = req.Size
 
 	if req.Name == "" {
-		vol.Info.Name = "vol_" + vol.Info.Id
+		vol.Info.Name = "blockvol_" + vol.Info.Id
 	} else {
 		vol.Info.Name = req.Name
 	}
