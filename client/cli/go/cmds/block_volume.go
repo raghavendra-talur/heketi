@@ -26,7 +26,6 @@ var (
 	bv_volname        string
 //	bv_gid            int64
 	bv_clusters       string
-	bv_id             string
 )
 
 func init() {
@@ -36,13 +35,13 @@ func init() {
 	blockVolumeCommand.AddCommand(blockVolumeInfoCommand)
 	blockVolumeCommand.AddCommand(blockVolumeListCommand)
 
-	blockVolumeCreateCommand.Flags().IntVar(&size, "size", -1,
+	blockVolumeCreateCommand.Flags().IntVar(&bv_size, "size", -1,
 		"\n\tSize of volume in GB")
 //	blockVolumeCreateCommand.Flags().Int64Var(&gid, "gid", 0,
 //		"\n\tOptional: Initialize volume with the specified group id")
-	blockVolumeCreateCommand.Flags().StringVar(&volname, "name", "",
+	blockVolumeCreateCommand.Flags().StringVar(&bv_volname, "name", "",
 		"\n\tOptional: Name of volume. Only set if really necessary")
-	blockVolumeCreateCommand.Flags().StringVar(&clusters, "clusters", "",
+	blockVolumeCreateCommand.Flags().StringVar(&bv_clusters, "clusters", "",
 		"\n\tOptional: Comma separated list of cluster ids where this volume"+
 			"\n\tmust be allocated. If omitted, Heketi will allocate the volume"+
 			"\n\ton any of the configured clusters which have the available space."+
@@ -72,25 +71,25 @@ var blockVolumeCreateCommand = &cobra.Command{
         --clusters=0995098e1284ddccb46c7752d142c832,60d46d518074b13a04ce1022c8c7193c
 `,
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if size == -1 {
+		if bv_size == -1 {
 			return errors.New("Missing volume size")
 		}
 
 		var clusters_ []string
-		if clusters != "" {
+		if bv_clusters != "" {
 			clusters_ = strings.Split(clusters, ",")
 		}
 
 		req := &api.BlockVolumeCreateRequest{}
-		req.Size = size
+		req.Size = bv_size
 		req.Clusters = clusters_
 
 //		if gid != 0 {
 //			req.Gid = gid
 //		}
 
-		if volname != "" {
-			req.Name = volname
+		if bv_volname != "" {
+			req.Name = bv_volname
 		}
 
 		heketi := client.NewClient(options.Url, options.User, options.Key)
