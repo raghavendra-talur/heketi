@@ -45,7 +45,6 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	godbc.Require(db != nil)
 	godbc.Require(blockHostingVolumeId != "")
 
-	vr := &executors.BlockVolumeRequest{}
 	var executorhost string
 	var blockHostingVolumeName string
 
@@ -55,6 +54,9 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 		if err != nil {
 			return err
 		}
+
+		v.Info.BlockVolume.Hosts = bhvol.Info.Mount.GlusterFS.Hosts
+		v.Info.Hacount = len(v.Info.BlockVolume.Hosts)
 
 		v.Info.Cluster = bhvol.Info.Cluster
 		blockHostingVolumeName = bhvol.Info.Name
@@ -83,13 +85,11 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	}
 
 	// Setup volume information in the request
+	vr := &executors.BlockVolumeRequest{}
 	vr.Name = v.Info.Name
 	vr.BlockHosts = v.Info.BlockVolume.Hosts
 	vr.GlusterVolumeName = blockHostingVolumeName
-	vr.Hacount = 3
-	if v.Info.Hacount != 0 {
-		vr.Hacount = v.Info.Hacount
-	}
+	vr.Hacount = v.Info.Hacount
 	vr.Size = v.Info.Size
 
 	return vr, executorhost, nil
