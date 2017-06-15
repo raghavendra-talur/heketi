@@ -359,6 +359,9 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 		blockHostingVolumeName = volume.Info.Name
 		return nil
 	})
+	if err != nil {
+		return err
+	}
 
 	logger.Debug("Using blockosting volume name[%v]", blockHostingVolumeName)
 
