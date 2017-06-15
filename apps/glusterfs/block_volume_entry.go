@@ -61,10 +61,6 @@ func CreateBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocato
 		vol.Info.Block = true
 
 		err = vol.Save(tx)
-		if err != nil {
-			return err
-		}
-
 		return err
 	})
 
