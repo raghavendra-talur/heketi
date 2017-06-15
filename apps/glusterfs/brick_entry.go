@@ -258,22 +258,26 @@ func addVolumeIdInBrickEntry(tx *bolt.Tx) error {
 	for _, cluster := range clusters {
 		clusterEntry, err := NewClusterEntryFromId(tx, cluster)
 		if err != nil {
+			logger.LogError("NewClusterEntryFromId failed: %v", err)
 			return err
 		}
 		for _, volume := range clusterEntry.Info.Volumes {
 			volumeEntry, err := NewVolumeEntryFromId(tx, volume)
 			if err != nil {
+				logger.LogError("NewVolumeEntryFromId failed for %v: %v", volume, err)
 				return err
 			}
 			for _, brick := range volumeEntry.Bricks {
 				brickEntry, err := NewBrickEntryFromId(tx, brick)
 				if err != nil {
+					logger.LogError("NewBrickEntryFromId failed: %v", err)
 					return err
 				}
 				if brickEntry.Info.VolumeId == "" {
 					brickEntry.Info.VolumeId = volume
 					err = brickEntry.Save(tx)
 					if err != nil {
+						logger.LogError("Saving BrickEntry failed: %v", err)
 						return err
 					}
 				} else {

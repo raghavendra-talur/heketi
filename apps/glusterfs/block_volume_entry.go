@@ -310,6 +310,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 	}()
 
 	err = db.Update(func(tx *bolt.Tx) error {
+		v.Info.BlockHostingVolume = blockHostingVolume
 
 		err = v.Save(tx)
 		if err != nil {
@@ -321,7 +322,7 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 			return err
 		}
 
-		cluster.VolumeAdd(v.Info.Id)
+		cluster.BlockVolumeAdd(v.Info.Id)
 
 		err = cluster.Save(tx)
 		if err != nil {
@@ -362,14 +363,13 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 
 	logger.Debug("Using node [%v]", NodeId)
 	db.View(func(tx *bolt.Tx) error {
-		if executorhost == "" {
-			node, err := NewNodeEntryFromId(tx, NodeId)
-			if err != nil {
-				logger.LogError("Unable to determine brick node: %v", err)
-				return err
-			}
-			executorhost = node.ManageHostName()
+		node, err := NewNodeEntryFromId(tx, NodeId)
+		if err != nil {
+			logger.LogError("Unable to determine brick node: %v", err)
+			return err
 		}
+		executorhost = node.ManageHostName()
+
 		volume, err := NewVolumeEntryFromId(tx, v.Info.BlockHostingVolume)
 		if err != nil {
 			logger.LogError("Unable to determine brick node: %v", err)
@@ -378,6 +378,9 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 		blockHostingVolumeName = volume.Info.Name
 		return nil
 	})
+
+	logger.Debug("Using executor host [%v]", executorhost)
+	logger.Debug("Using blockosting volume name[%v]", blockHostingVolumeName)
 
 	// Determine if we can destroy the volume
 	// [ashiq] we can skip this part for now as there is nothing to verify as we dont have snapshotting yet
@@ -396,6 +399,8 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 		return err
 	}
 
+	logger.Debug("Destroyed backend volume")
+
 	err = db.Update(func(tx *bolt.Tx) error {
 		// Remove volume from cluster
 		cluster, err := NewClusterEntryFromId(tx, v.Info.Cluster)
@@ -403,7 +408,7 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 			logger.Err(err)
 			// Do not return here.. keep going
 		}
-		cluster.VolumeDelete(v.Info.Id)
+		cluster.BlockVolumeDelete(v.Info.Id)
 		err = cluster.Save(tx)
 		if err != nil {
 			logger.Err(err)

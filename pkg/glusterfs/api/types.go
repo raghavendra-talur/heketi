@@ -120,10 +120,11 @@ type TopologyInfoResponse struct {
 }
 
 type ClusterInfoResponse struct {
-	Id      string           `json:"id"`
-	Nodes   sort.StringSlice `json:"nodes"`
-	Volumes sort.StringSlice `json:"volumes"`
-	Block   bool             `json:"block"`
+	Id           string           `json:"id"`
+	Nodes        sort.StringSlice `json:"nodes"`
+	Volumes      sort.StringSlice `json:"volumes"`
+	BlockVolumes sort.StringSlice `json:"volumes"`
+	Block        bool             `json:"block"`
 }
 
 type ClusterListResponse struct {

@@ -236,7 +236,7 @@ func (a *App) Upgrade(tx *bolt.Tx) error {
 
 	err = BrickEntryUpgrade(tx)
 	if err != nil {
-		logger.LogError("Failed to upgrade db for brick entries")
+		logger.LogError("Failed to upgrade db for brick entries: %v", err)
 		return err
 	}
 
