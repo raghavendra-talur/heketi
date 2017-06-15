@@ -352,35 +352,26 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) error {
 	logger.Info("Destroying volume %v", v.Info.Id)
 
-	var executorhost string
-	var NodeId string
 	var blockHostingVolumeName string
 
-	NodeId, err := GetVerifiedNodeId(db, executor, v.Info.Cluster)
-	if err != nil {
-		return err
-	}
-
-	logger.Debug("Using node [%v]", NodeId)
 	db.View(func(tx *bolt.Tx) error {
-		node, err := NewNodeEntryFromId(tx, NodeId)
-		if err != nil {
-			logger.LogError("Unable to determine brick node: %v", err)
-			return err
-		}
-		executorhost = node.ManageHostName()
-
 		volume, err := NewVolumeEntryFromId(tx, v.Info.BlockHostingVolume)
 		if err != nil {
-			logger.LogError("Unable to determine brick node: %v", err)
+			logger.LogError("Unable to load block hosting volume: %v", err)
 			return err
 		}
 		blockHostingVolumeName = volume.Info.Name
 		return nil
 	})
 
-	logger.Debug("Using executor host [%v]", executorhost)
 	logger.Debug("Using blockosting volume name[%v]", blockHostingVolumeName)
+
+	executorhost, err := GetVerifiedManageHostname(db, executor, v.Info.Cluster)
+	if err != nil {
+		return err
+	}
+
+	logger.Debug("Using executor host [%v]", executorhost)
 
 	// Determine if we can destroy the volume
 	// [ashiq] we can skip this part for now as there is nothing to verify as we dont have snapshotting yet

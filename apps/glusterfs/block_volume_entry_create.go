@@ -45,7 +45,6 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	godbc.Require(db != nil)
 	godbc.Require(blockHostingVolumeId != "")
 
-	var executorhost string
 	var blockHostingVolumeName string
 
 	err := db.View(func(tx *bolt.Tx) error {
@@ -61,28 +60,19 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 		v.Info.Cluster = bhvol.Info.Cluster
 		blockHostingVolumeName = bhvol.Info.Name
 
-		nodeId, err := GetVerifiedNodeId(db, executor, v.Info.Cluster)
-		if err != nil {
-			return err
-		}
-
-		logger.Debug("Using gluster node [%v]", nodeId)
-
-		node, err := NewNodeEntryFromId(tx, nodeId)
-		if err != nil {
-			return err
-		}
-
-		if executorhost == "" {
-			executorhost = node.ManageHostName()
-		}
-
 		return nil
 	})
 	if err != nil {
 		logger.Err(err)
 		return nil, "", err
 	}
+
+	executorhost, err := GetVerifiedManageHostname(db, executor, v.Info.Cluster)
+	if err != nil {
+		return nil, "", err
+	}
+
+	logger.Debug("Using executor host [%v]", executorhost)
 
 	// Setup volume information in the request
 	vr := &executors.BlockVolumeRequest{}
