@@ -304,7 +304,7 @@ func (v *BlockVolumeInfoResponse) String() string {
 		"Volume Id: %v\n"+
 		"Cluster Id: %v\n"+
 		"Hosts: %v\n"+
-		"IQN=%v\n"+
+		"IQN: %v\n"+
 		"LUN: %v\n"+
 		"Hacount: %v\n"+
 		"Block Hosting Volume: %v\n",
