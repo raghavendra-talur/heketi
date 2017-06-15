@@ -63,37 +63,6 @@ func (s *SshExecutor) BlockVolumeCreate(host string,
 	return &blockVolumeInfo, nil
 }
 
-func (s *SshExecutor) BlockVolumeInfo(host string,
-	blockHostingVolumeName string,
-	blockVolumeName string) (*executors.BlockVolumeInfo, error) {
-
-	godbc.Require(blockHostingVolumeName != "")
-	godbc.Require(blockVolumeName != "")
-	godbc.Require(host != "")
-
-	cmd := fmt.Sprintf("gluster-block info %v/%v", blockHostingVolumeName, blockVolumeName)
-
-	commands := []string{cmd}
-
-	_, err := s.RemoteExecutor.RemoteCommandExecute(host, commands, 10)
-	if err != nil {
-		return nil, err
-	}
-
-	// TODO: fill info from output of gluster-block ??!!
-
-	/* example output:
-	NAME: sample-block
-	VOLUME: block-test
-	GBID: 6b60c53c-8ce0-4d8d-a42c-5b546bca3d09
-	SIZE: 1073741824
-	MULTIPATH: 3
-	BLOCK CONFIG NODE(S): 192.168.1.11 192.168.1.12 192.168.1.13
-	*/
-
-	return &executors.BlockVolumeInfo{}, nil
-}
-
 func (s *SshExecutor) BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error {
 	godbc.Require(host != "")
 	godbc.Require(blockHostingVolumeName != "")

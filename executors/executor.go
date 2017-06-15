@@ -28,7 +28,6 @@ type Executor interface {
 	VolumeInfo(host string, volume string) (*Volume, error)
 	SetLogLevel(level string)
 	BlockVolumeCreate(host string, blockVolume *BlockVolumeRequest) (*BlockVolumeInfo, error)
-	BlockVolumeInfo(host string, blockHostingVolumeName string, blockVolumeName string) (*BlockVolumeInfo, error)
 	BlockVolumeDestroy(host string, blockHostingVolumeName string, blockVolumeName string) error
 }
 
