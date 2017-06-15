@@ -86,7 +86,10 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	vr.Name = v.Info.Name
 	vr.BlockHosts = v.Info.BlockVolume.Hosts
 	vr.GlusterVolumeName = blockHostingVolumeName
-	vr.Hacount = v.Info.Hacount
+	vr.Hacount = 3
+	if v.Info.Hacount != 0 {
+		vr.Hacount = v.Info.Hacount
+	}
 	vr.Size = v.Info.Size
 
 	return vr, executorhost, nil
