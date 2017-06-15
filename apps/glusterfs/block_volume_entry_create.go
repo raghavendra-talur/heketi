@@ -49,7 +49,6 @@ func (v *BlockVolumeEntry) createBlockVolumeRequest(db *bolt.DB,
 	var executorhost string
 	var blockHostingVolumeName string
 
-	// TODO -- which NodeId
 	err := db.View(func(tx *bolt.Tx) error {
 		logger.Debug("Looking for block hosting volume %v", blockHostingVolumeId)
 		bhvol, err := NewVolumeEntryFromId(tx, blockHostingVolumeId)
