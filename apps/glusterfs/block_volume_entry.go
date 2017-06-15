@@ -354,9 +354,7 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 	var executorhost string
 	var NodeId string
 	var blockHostingVolumeName string
-	for _, NodeId = range v.Info.BlockVolume.Hosts {
-		// Check glusterd/gluster-blockd here
-	}
+
 	NodeId, err := GetVerifiedNodeId(db, executor, v.Info.Cluster)
 	if err != nil {
 		return err
