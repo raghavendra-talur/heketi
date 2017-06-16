@@ -177,7 +177,7 @@ type VolumeInfo struct {
 	BlockInfo struct {
 		FreeSize     int              `json:"freesize,omitempty"`
 		BlockVolumes sort.StringSlice `json:"blockvolume,omitempty"`
-	}
+	} `json:"blockinfo,omitempty"`
 }
 
 type VolumeInfoResponse struct {
@@ -245,6 +245,9 @@ func (v *VolumeInfoResponse) String() string {
 		"Cluster Id: %v\n"+
 		"Mount: %v\n"+
 		"Mount Options: backup-volfile-servers=%v\n"+
+		"Block: %v\n"+
+		"Blockinfo: FreeSize: %v\n"+
+		"Blockinfo: BlockVolumes: %v\n"+
 		"Durability Type: %v\n",
 		v.Name,
 		v.Size,
@@ -252,6 +255,9 @@ func (v *VolumeInfoResponse) String() string {
 		v.Cluster,
 		v.Mount.GlusterFS.MountPoint,
 		v.Mount.GlusterFS.Options["backup-volfile-servers"],
+		v.Block,
+		v.BlockInfo.FreeSize,
+		v.BlockInfo.BlockVolumes,
 		v.Durability.Type)
 
 	switch v.Durability.Type {

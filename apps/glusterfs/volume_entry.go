@@ -160,6 +160,8 @@ func (v *VolumeEntry) NewInfoResponse(tx *bolt.Tx) (*api.VolumeInfoResponse, err
 	info.Size = v.Info.Size
 	info.Durability = v.Info.Durability
 	info.Name = v.Info.Name
+	info.Block = v.Info.Block
+	info.BlockInfo = v.Info.BlockInfo
 
 	for _, brickid := range v.BricksIds() {
 		brick, err := NewBrickEntryFromId(tx, brickid)
