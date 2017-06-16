@@ -349,6 +349,7 @@ func (v *BlockVolumeEntry) Destroy(db *bolt.DB, executor executors.Executor) err
 	logger.Info("Destroying volume %v", v.Info.Id)
 
 	var blockHostingVolumeName string
+	var err error
 
 	db.View(func(tx *bolt.Tx) error {
 		volume, err := NewVolumeEntryFromId(tx, v.Info.BlockHostingVolume)
