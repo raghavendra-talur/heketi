@@ -60,6 +60,8 @@ func CreateBlockHostingVolume(db *bolt.DB, executor executors.Executor, allocato
 		vol.Info.BlockInfo.FreeSize = vol.Info.Size
 		vol.Info.Block = true
 
+		logger.Debug("Storing volume info in the DB: [%+v]", vol)
+
 		err = vol.Save(tx)
 		return err
 	})
@@ -329,8 +331,10 @@ func (v *BlockVolumeEntry) Create(db *bolt.DB,
 		if err != nil {
 			return err
 		}
+		logger.Debug("Loaded volume info from DB: [%+v]", volume)
 
 		volume.BlockVolumeAdd(v.Info.Id)
+		logger.Debug("Storing volume info to DB: [%+v]", volume)
 		err = volume.Save(tx)
 		if err != nil {
 			return err
