@@ -173,7 +173,7 @@ type VolumeInfo struct {
 			Options    map[string]string `json:"options"`
 		} `json:"glusterfs"`
 	} `json:"mount"`
-	Block     bool `json:"block,omitempty"`
+	Block     bool `json:"block"`
 	BlockInfo struct {
 		FreeSize     int              `json:"freesize,omitempty"`
 		BlockVolumes sort.StringSlice `json:"blockvolume,omitempty"`
