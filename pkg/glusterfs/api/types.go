@@ -317,6 +317,7 @@ type VolumeInfo struct {
 		FreeSize     int              `json:"freesize,omitempty"`
 		ReservedSize int              `json:"reservedsize,omitempty"`
 		BlockVolumes sort.StringSlice `json:"blockvolume,omitempty"`
+		Locked       bool             `json:"locked"`
 	} `json:"blockinfo,omitempty"`
 }
 
