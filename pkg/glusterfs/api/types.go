@@ -302,6 +302,14 @@ func (volCreateRequest VolumeCreateRequest) Validate() error {
 	)
 }
 
+type BlockRestriction string
+
+const (
+	Unrestricted   BlockRestriction = ""
+	Locked         BlockRestriction = "locked"
+	LockedByUpdate BlockRestriction = "locked-by-update"
+)
+
 type VolumeInfo struct {
 	VolumeCreateRequest
 	Id      string `json:"id"`
@@ -317,7 +325,7 @@ type VolumeInfo struct {
 		FreeSize     int              `json:"freesize,omitempty"`
 		ReservedSize int              `json:"reservedsize,omitempty"`
 		BlockVolumes sort.StringSlice `json:"blockvolume,omitempty"`
-		Locked       bool             `json:"locked"`
+		Restriction  BlockRestriction `json:"restriction,omitempty"`
 	} `json:"blockinfo,omitempty"`
 }
 
