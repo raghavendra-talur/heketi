@@ -3175,7 +3175,7 @@ func TestBlockVolumeCreateOperationLockedBHV(t *testing.T) {
 		tests.Assert(t, len(vl) == 1, "expected len(vl) == 1, got:", len(vl))
 		po, e := PendingOperationList(tx)
 		tests.Assert(t, e == nil, "expected e == nil, got", e)
-		tests.Assert(t, len(po) == 1, "expected len(po) == 1, got:", len(po))
+		tests.Assert(t, len(po) == 0, "expected len(po) == 0, got:", len(po))
 		return nil
 	})
 
@@ -3207,7 +3207,7 @@ func TestBlockVolumeCreateOperationLockedBHV(t *testing.T) {
 		tests.Assert(t, len(vl) == 1, "expected len(vl) == 1, got:", len(vl))
 		po, e := PendingOperationList(tx)
 		tests.Assert(t, e == nil, "expected e == nil, got", e)
-		tests.Assert(t, len(po) == 1, "expected len(po) == 1, got:", len(po))
+		tests.Assert(t, len(po) == 0, "expected len(po) == 0, got:", len(po))
 		return nil
 	})
 }
