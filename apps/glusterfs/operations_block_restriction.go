@@ -138,7 +138,7 @@ func (ro *VolumeSetBlockRestrictionOperation) checkCanUnlock(
 			"Can not unlock volume. %vGiB free space is required, but found %vGiB",
 			rSize, v.Info.BlockInfo.FreeSize)
 	default:
-		return fmt.Errorf("Enexpected restriction state: %v",
+		return fmt.Errorf("Unexpected restriction state: %v",
 			v.Info.BlockInfo.Restriction)
 	}
 }
