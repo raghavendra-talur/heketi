@@ -3186,7 +3186,7 @@ func TestBlockVolumeCreateOperationLockedBHV(t *testing.T) {
 		tests.Assert(t, len(vl) == 1, "expected len(vl) == 1, got", len(vl))
 		vol, e := NewVolumeEntryFromId(tx, vl[0])
 		tests.Assert(t, e == nil, "expected e == nil, got", e)
-		vol.Info.BlockInfo.Locked = true
+		vol.Info.BlockInfo.Restriction = api.Locked
 		e = vol.Save(tx)
 		tests.Assert(t, e == nil, "expected e == nil, got", e)
 		return nil
