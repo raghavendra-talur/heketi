@@ -488,6 +488,9 @@ var volumeListCommand = &cobra.Command{
 			for _, id := range list.Volumes {
 				volume, err := heketi.VolumeInfo(id)
 				if err != nil {
+					if strings.Contains(err.Error(), "Id not found") {
+						continue
+					}
 					return err
 				}
 
