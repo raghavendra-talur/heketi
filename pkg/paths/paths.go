@@ -20,6 +20,28 @@ const (
 	deviceMapperRoot    = "/dev/mapper"
 )
 
+func BrickIdPathDeviceFromGlusterBrickName(brickName string) (brickid string, brickpath string, deviceid string) {
+	brickpath = strings.Split(brickName, ":")[1]
+	bp, rest := path.Split(path.Clean(brickpath))
+	if rest != "brick" {
+		// be super picky about validity to shake out any issues early
+		panic(errors.New("Unexpected path component in: " + bp))
+	}
+	pathtillvgid, brick := path.Split(path.Clean(bp))
+	if !strings.Contains(brick, "brick_") {
+		// be super picky about validity to shake out any issues early
+		panic(errors.New("Unexpected path component in: " + bp))
+	}
+	_, devicename := path.Split(path.Clean(pathtillvgid))
+	if !strings.Contains(devicename, "vg_") {
+		// be super picky about validity to shake out any issues early
+		panic(errors.New("Unexpected path component in: " + pathtillvgid))
+	}
+	brickid = strings.Split(brick, "brick_")[1]
+	deviceid = strings.Split(devicename, "vg_")[1]
+	return
+}
+
 // VgIdToName return the string to be used for the name of
 // an LVM VG given the id of the vg.
 func VgIdToName(vgId string) string {

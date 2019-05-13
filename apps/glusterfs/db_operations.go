@@ -18,6 +18,7 @@ import (
 	"github.com/boltdb/bolt"
 	wdb "github.com/heketi/heketi/pkg/db"
 	"github.com/heketi/heketi/pkg/glusterfs/api"
+	"github.com/heketi/heketi/pkg/paths"
 )
 
 func dbDumpInternal(db wdb.DB) (Db, error) {
@@ -648,5 +649,95 @@ func dbCheckPendingOps(dump Db) (pendingOpsCheckResponse DbBucketCheckResponse) 
 		}
 	}
 
+	return
+}
+
+// DbBuild ... is the offline version
+func DbBuild(reportfile string, dbjsonfile string) error {
+
+	var report GlusterStateExaminationResponse
+	var dump Db
+
+	fpreport, err := os.Open(reportfile)
+	if err != nil {
+		return fmt.Errorf("could not open input file: %v", err.Error())
+	}
+	defer fpreport.Close()
+
+	dbparser := json.NewDecoder(fpreport)
+	if err = dbparser.Decode(&report); err != nil {
+		return fmt.Errorf("could not decode input file as json: %v", err.Error())
+	}
+
+	var fpdbjson *os.File
+	if dbjsonfile == "-" {
+		fpdbjson = os.Stdout
+	} else {
+		var err error
+		fpdbjson, err = os.OpenFile(dbjsonfile, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+		if err != nil {
+			return fmt.Errorf("Could not create json file: %v", err.Error())
+		}
+		defer fpdbjson.Close()
+	}
+	encoder := json.NewEncoder(fpdbjson)
+	encoder.SetIndent("", "    ")
+
+	dump, err = dbTransform(report)
+	if err != nil {
+		return fmt.Errorf("Unable to check the database: %v", err)
+	}
+
+	if err := encoder.Encode(dump); err != nil {
+		return fmt.Errorf("Unable to encode the response into json: %v", err)
+	}
+
+	return nil
+}
+
+// dbTransform
+func dbTransform(report GlusterStateExaminationResponse) (db Db, err error) {
+
+	clusterEntryList := make(map[string]ClusterEntry, 0)
+	volEntryList := make(map[string]VolumeEntry, 0)
+	brickEntryList := make(map[string]BrickEntry, 0)
+	nodeEntryList := make(map[string]NodeEntry, 0)
+	deviceEntryList := make(map[string]DeviceEntry, 0)
+	blockvolEntryList := make(map[string]BlockVolumeEntry, 0)
+	dbattributeEntryList := make(map[string]DbAttributeEntry, 0)
+	pendingOpEntryList := make(map[string]PendingOperationEntry, 0)
+
+	for _, cluster := range report.Clusters {
+		var clusterentry ClusterEntry
+		logger.Debug("adding cluster entry %v", cluster.ClusterHeketiID)
+		clusterentry.Info.Id = cluster.ClusterHeketiID
+
+		for _, node := range cluster.NodesData {
+			var nodeentry NodeEntry
+			clusterentry.Info.Nodes = append(clusterentry.Info.Nodes, node.NodeHeketiID)
+			nodeentry.Info.Id = node.NodeHeketiID
+
+			for _, vol := range node.VolumeInfo.Volumes.VolumeList {
+
+				for _, brick := range vol.Bricks.BrickList {
+					var brickentry BrickEntry
+					brickentry.Info.Id, brickentry.Info.Path, brickentry.Info.DeviceId = paths.BrickIdPathDeviceFromGlusterBrickName(brick.Name)
+					brickEntryList[brickentry.Info.Id] = brickentry
+				}
+
+			}
+		}
+
+		clusterEntryList[cluster.ClusterHeketiID] = clusterentry
+	}
+
+	db.Clusters = clusterEntryList
+	db.Volumes = volEntryList
+	db.Bricks = brickEntryList
+	db.Nodes = nodeEntryList
+	db.Devices = deviceEntryList
+	db.BlockVolumes = blockvolEntryList
+	db.DbAttributes = dbattributeEntryList
+	db.PendingOperations = pendingOpEntryList
 	return
 }

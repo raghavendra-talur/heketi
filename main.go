@@ -44,6 +44,8 @@ var (
 	deleteAllBricksWithEmptyPath bool
 	dryRun                       bool
 	force                        bool
+	dbjson                       string
+	report                       string
 )
 
 var RootCmd = &cobra.Command{
@@ -302,6 +304,32 @@ var examineGlusterCmd = &cobra.Command{
 	},
 }
 
+var builddbCmd = &cobra.Command{
+	Use:     "build",
+	Short:   "build db",
+	Long:    "build db",
+	Example: "heketi db build --dbjson=/db/file/path/ --report=/path/to/report",
+	Run: func(cmd *cobra.Command, args []string) {
+		if dbjson == "" {
+			fmt.Fprintln(os.Stderr, "Please provide path for db file")
+			os.Exit(1)
+		}
+		if report == "" {
+			fmt.Fprintln(os.Stderr, "Please provide path for report file")
+			os.Exit(1)
+		}
+		if debugOutput {
+			glusterfs.SetLogLevel("debug")
+		}
+		err := glusterfs.DbBuild(report, dbjson)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to build db: %v\n", err.Error())
+			os.Exit(1)
+		}
+		os.Exit(0)
+	},
+}
+
 func init() {
 	RootCmd.Flags().StringVar(&configfile, "config", "", "Configuration file")
 	RootCmd.Flags().BoolVarP(&showVersion, "version", "v", false, "Show version")
@@ -326,6 +354,11 @@ func init() {
 	checkdbCmd.Flags().StringVar(&dbFile, "dbfile", "", "File path for db to be exported")
 	checkdbCmd.Flags().BoolVar(&debugOutput, "debug", false, "Show debug logs on stdout")
 	checkdbCmd.SilenceUsage = true
+	dbCmd.AddCommand(builddbCmd)
+	builddbCmd.Flags().StringVar(&dbjson, "dbjson", "", "File path for db to be created")
+	builddbCmd.Flags().StringVar(&report, "report", "", "File path for report")
+	builddbCmd.Flags().BoolVar(&debugOutput, "debug", false, "Show debug logs on stdout")
+	builddbCmd.SilenceUsage = true
 
 	dbCmd.AddCommand(deleteBricksWithEmptyPath)
 	deleteBricksWithEmptyPath.Flags().StringVar(&dbFile, "dbfile", "", "File path for db to operate on")
