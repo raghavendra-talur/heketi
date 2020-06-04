@@ -179,6 +179,18 @@ def _check_pending(what, myid, item, data):
     if pid not in data["pendingoperations"]:
         report(what, myid, "marked pending but no pending op", pid)
 
+def commands(data, bid, brick):
+    poolmetadataValue =  str(brick["PoolMetadataSize"]) + 'K'
+    virtuasizeValue = tpsizeValue =  str(brick["TpSize"]) + 'K'
+    thinValue = 'VGID/tp_'  + brick[INFO]['id']
+    nameValue = 'brick_' + brick[INFO]['id']
+    print ('lvcreate -qq --autobackup=y --poolmetadatasize {} --chunksize 256K --size {} --thin {} --virtualsize {} --name {}'.format(
+        poolmetadataValue , tpsizeValue, thinValue, virtuasizeValue, nameValue))
+
+def dump_commands(data):
+    for bid, b in data['brickentries'].items():
+        if b[INFO]["volume"] == "e1ec57cfd19959f0b342f1022d3dad4e":
+            commands(data, bid, b)
 
 def check_db(data):
     for cid, c in data['clusterentries'].items():
@@ -238,7 +250,8 @@ except IndexError:
 with open(filename) as fh:
     data = json.load(fh)
 
-summarize_db(data)
-check_db(data)
+#summarize_db(data)
+#check_db(data)
+dump_commands(data)
 if ERR_COUNT:
     sys.exit(1)
