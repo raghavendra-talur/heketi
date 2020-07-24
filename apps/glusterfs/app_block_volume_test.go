@@ -305,6 +305,101 @@ func TestBlockVolumeCreate(t *testing.T) {
 	tests.Assert(t, info.Auth == false)
 }
 
+func TestBlockVolumeCreateConcurrent(t *testing.T) {
+	tmpfile := tests.Tempfile()
+	defer os.Remove(tmpfile)
+
+	// Create the app
+	app := NewTestApp(tmpfile)
+	defer app.Close()
+	router := mux.NewRouter()
+	app.SetRoutes(router)
+
+	// Setup the server
+	ts := httptest.NewServer(router)
+	defer ts.Close()
+
+	// Setup database
+	err := setupSampleDbWithTopology(app,
+		1,    // clusters
+		3,    // nodes_per_cluster
+		1,    // devices_per_node,
+		5*TB, // disksize)
+	)
+	tests.Assert(t, err == nil)
+
+	// BlockVolumeCreate
+	request := []byte(`{
+        "size" : 100
+    }`)
+
+	r1, err := http.Post(ts.URL+"/blockvolumes", "application/json", bytes.NewBuffer(request))
+	tests.Assert(t, err == nil)
+	tests.Assert(t, r1.StatusCode == http.StatusAccepted)
+	location1, err := r1.Location()
+	tests.Assert(t, err == nil)
+
+	r2, err := http.Post(ts.URL+"/blockvolumes", "application/json", bytes.NewBuffer(request))
+	tests.Assert(t, err == nil)
+	tests.Assert(t, r2.StatusCode == http.StatusAccepted)
+	location2, err := r2.Location()
+	tests.Assert(t, err == nil)
+
+	// Query queue until finished
+	var info api.BlockVolumeInfoResponse
+	for {
+		r1, err = http.Get(location1.String())
+		tests.Assert(t, err == nil)
+		tests.Assert(t, r1.StatusCode == http.StatusOK)
+		if r1.ContentLength <= 0 {
+			time.Sleep(time.Millisecond * 10)
+			continue
+		} else {
+			// Should have node information here
+			tests.Assert(t, r1.Header.Get("Content-Type") == "application/json; charset=UTF-8")
+			err = utils.GetJsonFromResponse(r1, &info)
+			tests.Assert(t, err == nil)
+			break
+		}
+	}
+	tests.Assert(t, info.Id != "")
+	tests.Assert(t, info.Cluster != "")
+	tests.Assert(t, info.BlockHostingVolume != "")
+	tests.Assert(t, len(info.BlockVolume.Hosts) == 3)
+	tests.Assert(t, info.BlockVolume.Iqn != "")
+	tests.Assert(t, info.BlockVolume.Password == "")
+	tests.Assert(t, info.BlockVolume.Username == "")
+	tests.Assert(t, info.Size == 100)
+	tests.Assert(t, info.Name == "blockvol_"+info.Id)
+	tests.Assert(t, info.Auth == false)
+
+	for {
+		r2, err = http.Get(location2.String())
+		tests.Assert(t, err == nil)
+		tests.Assert(t, r2.StatusCode == http.StatusOK)
+		if r2.ContentLength <= 0 {
+			time.Sleep(time.Millisecond * 10)
+			continue
+		} else {
+			// Should have node information here
+			tests.Assert(t, r2.Header.Get("Content-Type") == "application/json; charset=UTF-8")
+			err = utils.GetJsonFromResponse(r2, &info)
+			tests.Assert(t, err == nil)
+			break
+		}
+	}
+	tests.Assert(t, info.Id != "")
+	tests.Assert(t, info.Cluster != "")
+	tests.Assert(t, info.BlockHostingVolume != "")
+	tests.Assert(t, len(info.BlockVolume.Hosts) == 3)
+	tests.Assert(t, info.BlockVolume.Iqn != "")
+	tests.Assert(t, info.BlockVolume.Password == "")
+	tests.Assert(t, info.BlockVolume.Username == "")
+	tests.Assert(t, info.Size == 100)
+	tests.Assert(t, info.Name == "blockvol_"+info.Id)
+	tests.Assert(t, info.Auth == false)
+}
+
 func blockVolumeTestResult(t *testing.T, r *http.Response) api.BlockVolumeInfoResponse {
 	var info api.BlockVolumeInfoResponse
 	tests.Assert(t, r.StatusCode == http.StatusAccepted)
